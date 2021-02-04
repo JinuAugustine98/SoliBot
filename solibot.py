@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, jsonify, request 
-from googletrans import Translator
+import boto3
 import mysql.connector
 from similarity import find_most_similar
 import geopy
