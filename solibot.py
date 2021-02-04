@@ -136,15 +136,21 @@ def query_handler():
         time_greet = "Good Evening!"
 
 
+    raw_response=raw_response.lower()
     try:
-        translator = Translator(service_urls=['translate.google.com'])
-        try:
-            user_response=translated_response.lower()
-        except:
-            user_response = translated_response
+        comprehend = boto3.client(service_name='comprehend', region_name='us-east-1')
+        result_det = json.dumps(comprehend.detect_dominant_language(Text = raw_response), sort_keys=True, indent=4)
+        detect = json.loads(result_det)
+        for d in detect['Languages']:
+            detected_lang = (d['LanguageCode'])
+
+        translate = boto3.client(service_name='translate', region_name='us-east-1', use_ssl=True)
+        trans = translate.translate_text(Text=raw_response, 
+            SourceLanguageCode=detected_lang, TargetLanguageCode="en")
+        user_response = trans["TranslatedText"]
+    
     except:
         user_response = raw_response
-        detected_lang = "en"
 
     print(user_response)
 
@@ -160,10 +166,10 @@ def query_handler():
         resp = response(user_response, raw_response, detected_lang, category)
     
     try:
-            transx_final = translator.translate(resp, dest=detected_lang)
-            final_response = transx_final.text
+        trans2 = translate.translate_text(Text=resp, SourceLanguageCode="en", TargetLanguageCode=detected_lang)
+        final_response = trans2["TranslatedText"]
     except:
-            final_response = resp
+        final_response = resp
 
     return jsonify({'response': final_response})
   
