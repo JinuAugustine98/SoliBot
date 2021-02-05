@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, jsonify, request 
 import boto3
+from rake_nltk import Rake
+from functools import reduce
 import mysql.connector
 from similarity import find_most_similar
 import geopy
@@ -15,6 +17,8 @@ faqdb = mysql.connector.connect(
 )
 
 cursor = faqdb.cursor() 
+
+r = Rake()
 
 geolocator = Nominatim(user_agent="geoapiExercises")
 
@@ -147,12 +151,21 @@ def query_handler():
         translate = boto3.client(service_name='translate', region_name='us-east-1', use_ssl=True)
         trans = translate.translate_text(Text=raw_response, 
             SourceLanguageCode=detected_lang, TargetLanguageCode="en")
-        user_response = trans["TranslatedText"]
+        trans_response = trans["TranslatedText"]
     
     except:
-        user_response = raw_response
+        trans_response = raw_response
 
-    print(user_response)
+    r.extract_keywords_from_text(trans_response)
+    keys_response = r.get_ranked_phrases()
+    
+    print("Identified Keywords: ",keys_response)
+
+    unique = reduce(lambda l, x: l.append(x) or l if x not in l else l, keys_response, [])
+    user_response = ""
+
+    for key in unique:
+        user_response += key+" "
 
     if user_response in GREETING_INPUTS:
         resp = time_greet+" I'm SoliBot! \nI'm here to help you with your queries. \nPlease ask me your question... "
