@@ -92,28 +92,49 @@ def echo_all(updates):
     for update in updates["result"]:
         raw_response = update["message"]["text"]
         raw_response=raw_response.lower()
-        try:
-            translator = Translator(service_urls=['translate.google.com'])
-            transx = translator.translate(raw_response, dest='en')
-            detected_lang = transx.src
-            user_response = transx.text
-        except:
-            user_response = raw_response
-            detected_lang = "en"
-        print(user_response)
-        if user_response in GREETING_INPUTS:
-            resp = "Hey there! I'm SoliBot! \nI'm here to help you with your queries. \nPlease ask me your question... "
-        elif user_response in THANK_INPUTS:
-            resp = "You are Welcome :) \nPlease come back for any more queries..."
-        elif user_response in EXIT_INPUTS:
-            resp = "See you Around! \nPlease come back for any more queries :)"
-        else:
-            resp = response(user_response, raw_response, detected_lang)
-        try:
-            transx_final = translator.translate(resp, dest=detected_lang)
-            final_response = transx_final.text
-        except:
-            final_response = resp
+    
+    try:
+        comprehend = boto3.client(service_name='comprehend', region_name='us-east-1')
+        result_det = json.dumps(comprehend.detect_dominant_language(Text = raw_response), sort_keys=True, indent=4)
+        detect = json.loads(result_det)
+        for d in detect['Languages']:
+            detected_lang = (d['LanguageCode'])
+
+        translate = boto3.client(service_name='translate', region_name='us-east-1', use_ssl=True)
+        trans = translate.translate_text(Text=raw_response, 
+            SourceLanguageCode=detected_lang, TargetLanguageCode="en")
+        trans_response = trans["TranslatedText"]
+    
+    except:
+        trans_response = raw_response
+
+    r.extract_keywords_from_text(trans_response)
+    keys_response = r.get_ranked_phrases()
+    
+    print("Identified Keywords: ",keys_response)
+
+    unique = reduce(lambda l, x: l.append(x) or l if x not in l else l, keys_response, [])
+    user_response = ""
+
+    for key in unique:
+        user_response += key+" "
+
+    if trans_response in GREETING_INPUTS:
+        resp = time_greet+" I'm SoliBot! \nI'm here to help you with your queries. \nPlease ask me your question... "
+    elif trans_response in THANK_INPUTS:
+        resp = "You are Welcome :) \nPlease come back for any more queries..."
+    elif trans_response in EXIT_INPUTS:
+        resp = "See you Around! \nPlease come back for any more queries :)"
+    elif trans_response in WEATHER_INPUTS:
+        resp = weather_data(cordinates)
+    else:
+        resp = response(user_response, raw_response, detected_lang, category)
+    
+    try:
+        trans2 = translate.translate_text(Text=resp, SourceLanguageCode="en", TargetLanguageCode=detected_lang)
+        final_response = trans2["TranslatedText"]
+    except:
+        final_response = resp
 
         chat = update["message"]["chat"]["id"]
         send_message(final_response, chat)
