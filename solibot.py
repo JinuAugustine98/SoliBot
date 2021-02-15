@@ -167,13 +167,13 @@ def query_handler():
     for key in unique:
         user_response += key+" "
 
-    if user_response in GREETING_INPUTS:
+    if trans_response in GREETING_INPUTS:
         resp = time_greet+" I'm SoliBot! \nI'm here to help you with your queries. \nPlease ask me your question... "
-    elif user_response in THANK_INPUTS:
+    elif trans_response in THANK_INPUTS:
         resp = "You are Welcome :) \nPlease come back for any more queries..."
-    elif user_response in EXIT_INPUTS:
+    elif trans_response in EXIT_INPUTS:
         resp = "See you Around! \nPlease come back for any more queries :)"
-    elif user_response in WEATHER_INPUTS:
+    elif trans_response in WEATHER_INPUTS:
         resp = weather_data(cordinates)
     else:
         resp = response(user_response, raw_response, detected_lang, category)
