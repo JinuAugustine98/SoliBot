@@ -5,8 +5,8 @@ from rake_nltk import Rake
 from functools import reduce
 from similarity import find_most_similar
 import requests, json
-import base64
 import pymysql
+from google.cloud import translate
 
 
 faqdb = pymysql.connect(user='faquser', passwd='Faq@123',
@@ -83,6 +83,30 @@ def weather_data(latitude, longitude):
         #     weather_result = "Sorry I'm not able to fetch the Weather details currently. \nPlease try again later..."
     return weather_result
 
+def translate_text(text="What is Tea", project_id="chatbot-translation-306311"):
+
+    client = translate.TranslationServiceClient()
+
+    location = "global"
+
+    parent = f"projects/{project_id}/locations/{location}"
+
+    # Detail on supported types can be found here:
+    # https://cloud.google.com/translate/docs/supported-formats
+    response = client.translate_text(
+        request={
+            "parent": parent,
+            "contents": [text],
+            "mime_type": "text/plain",  # mime types: text/plain, text/html
+            "source_language_code": "en-US",
+            "target_language_code": "fr",
+        }
+    )
+
+    # Display the translation for each input text provided
+    for translation in response.translations:
+        print("Translated text: {}".format(translation.translated_text))
+
 @app.route('/', methods = ['GET']) 
 def home(): 
     if(request.method == 'GET'): 
@@ -137,12 +161,20 @@ def query_handler():
 
     if trans_response in GREETING_INPUTS:
         resp = time_greet+" I'm SoliBot! \nI'm here to help you with your queries. \nPlease ask me your question... "
+        final_img = ""
+        final_vid = ""   
     elif trans_response in THANK_INPUTS:
         resp = "You are Welcome :) \nPlease come back for any more queries..."
+        final_img = ""
+        final_vid = ""    
     elif trans_response in EXIT_INPUTS:
         resp = "See you Around! \nPlease come back for any more queries :)"
+        final_img = ""
+        final_vid = ""    
     elif trans_response in WEATHER_INPUTS:
         resp = weather_data(latitude, longitude)
+        final_img = ""
+        final_vid = ""
     else:
         resp = response(user_response, raw_response, detected_lang, category)
         try:
@@ -172,6 +204,7 @@ def query_handler():
     server_response = {'response': final_response,
                     'image': final_img,
                     'video': final_vid}
+
 
     return json.dumps(server_response)
   
