@@ -5,9 +5,8 @@ from rake_nltk import Rake
 from functools import reduce
 import mysql.connector
 from similarity import find_most_similar
-import geopy
-from geopy.geocoders import Nominatim
 import requests, json
+import base64
 
 faqdb = mysql.connector.connect(
   host="soli-db.ciksb20swlbf.ap-south-1.rds.amazonaws.com",
@@ -20,7 +19,7 @@ cursor = faqdb.cursor()
 
 r = Rake()
 
-geolocator = Nominatim(user_agent="geoapiExercises")
+weather_api_key = "49caa7c4a444c3046739834965c9fb6b" 
 
 
 api_key = "4839184290ce2dd0d15508c3f09350e4"
@@ -70,52 +69,23 @@ def response(user_response, raw_response, detected_lang, category):
     return SoliBot_response
 
 
-def weather_data(cordinates):
-    if cordinates == "0.0":
+def weather_data(latitude, longitude):
+    if latitude == "0.0":
         weather_result = "Sorry! You have disabled Location Services hence I'm not able to determine the weather. \nIf you wish to see Weather information, please enable Location Services for the app."
 
     else:
-        try:
-            location = geolocator.reverse(cordinates) 
-            address = location.raw['address']
-            print(address) 
-            city = address.get('city') 
-            print('City : ',city) 
-            
-            complete_url = base_url + "appid=" + api_key + "&q=" + city
-            response = requests.get(complete_url) 
-            x = response.json()
-  
-            # store the value of "main" 
-            # key in variable y 
-            y = x["main"] 
+        # try:
+        weather_url = "api.openweathermap.org/data/2.5/weather?lat={"+str(latitude)+"}&lon={"+str(longitude)+"}&appid={"+weather_api_key+"}"
+        print(weather_url)
+        weather_request = requests.get(url = weather_url)
+        weather_result = weather_request.json()
+        print(weather_result)
         
-            # store the value corresponding 
-            # to the "temp" key of y 
-            tempr = y["temp"]
-            tempr = tempr-273
-            temprt = int(tempr)
-            
-        
-            # store the value corresponding 
-            # to the "humidity" key of y 
-            humidiy = y["humidity"] 
-        
-            # store the value corresponding  
-            # to the "description" key at  
-            # the 0th index of z 
-            descrp = weather_main[0]["description"] 
-        
-            # print following values 
-            weather_result = "In "+city+" it looks like "+str(descrp)+", the temperature is "+str(temprt)+"°C, and the humidity is "+str(humidiy)+"%."
-        
-        except:
-            weather_result = "Sorry I'm not able to fetch the Weather details currently. \nPlease try again later..."
+        # except:
+        #     weather_result = "Sorry I'm not able to fetch the Weather details currently. \nPlease try again later..."
     return weather_result
 
-    
-
-@app.route('/', methods = ['GET', 'POST']) 
+@app.route('/', methods = ['GET']) 
 def home(): 
     if(request.method == 'GET'): 
   
@@ -129,8 +99,8 @@ def query_handler():
     raw_response = input_data['query'] 
     category = input_data['category']
     time = input_data['time']
-    cordinates = input_data['cordinates']
-    print(cordinates)
+    latitude = input_data['latitude']
+    longitude = input_data['longitude']
 
     if time<13:
         time_greet = "Good Morning!"
@@ -174,9 +144,22 @@ def query_handler():
     elif trans_response in EXIT_INPUTS:
         resp = "See you Around! \nPlease come back for any more queries :)"
     elif trans_response in WEATHER_INPUTS:
-        resp = weather_data(cordinates)
+        resp = weather_data(latitude, longitude)
     else:
         resp = response(user_response, raw_response, detected_lang, category)
+        sql = "SELECT CONVERT(a_image USING utf8) FROM user_qa WHERE answer = %s;"
+        val = (resp)
+        cursor.execute(sql, (val,))
+        a_img = cursor.fetchone()
+        for x in a_img:
+            final_img = x
+
+        sql = "SELECT a_link FROM user_qa WHERE answer = %s;"
+        val = (resp)
+        cursor.execute(sql, (val,))
+        a_vid = cursor.fetchone()
+        for x in a_vid:
+            final_vid = x
     
     try:
         trans2 = translate.translate_text(Text=resp, SourceLanguageCode="en", TargetLanguageCode=detected_lang)
@@ -184,7 +167,11 @@ def query_handler():
     except:
         final_response = resp
 
-    return jsonify({'response': final_response})
+    server_response = {'response': final_response,
+                    'image': final_img,
+                    'video': final_vid}
+
+    return json.dumps(server_response)
   
   
 if __name__ == '__main__': 
