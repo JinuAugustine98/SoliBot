@@ -3,20 +3,12 @@ from flask import Flask, jsonify, request
 import boto3
 from rake_nltk import Rake
 from functools import reduce
-import mysql.connector
 from similarity import find_most_similar
 import requests, json
 import base64
 import pymysql
 
-# faqdb = mysql.connector.connect(
-#   host="soli-db.ciksb20swlbf.ap-south-1.rds.amazonaws.com",
-#   user="faquser",
-#   password="Faq@123",
-#   database ="db_faqs"
-# )
 
-# cursor = faqdb.cursor() 
 
 connection = pymysql.connect(user='faquser', passwd='Faq@123',
                                  host='soli-db.ciksb20swlbf.ap-south-1.rds.amazonaws.com',
