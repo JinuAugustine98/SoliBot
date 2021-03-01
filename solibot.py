@@ -7,15 +7,22 @@ import mysql.connector
 from similarity import find_most_similar
 import requests, json
 import base64
+import pymysql
 
-faqdb = mysql.connector.connect(
-  host="soli-db.ciksb20swlbf.ap-south-1.rds.amazonaws.com",
-  user="faquser",
-  password="Faq@123",
-  database ="db_faqs"
-)
+# faqdb = mysql.connector.connect(
+#   host="soli-db.ciksb20swlbf.ap-south-1.rds.amazonaws.com",
+#   user="faquser",
+#   password="Faq@123",
+#   database ="db_faqs"
+# )
 
-cursor = faqdb.cursor() 
+# cursor = faqdb.cursor() 
+
+connection = pymysql.connect(user='faquser', passwd='Faq@123',
+                                 host='soli-db.ciksb20swlbf.ap-south-1.rds.amazonaws.com',
+                                 database='db_faqs')
+
+cursor = connection.cursor()
 
 r = Rake()
 
@@ -147,19 +154,23 @@ def query_handler():
         resp = weather_data(latitude, longitude)
     else:
         resp = response(user_response, raw_response, detected_lang, category)
-        sql = "SELECT a_image FROM user_qa WHERE answer = %s;"
-        val = (resp)
-        cursor.execute(sql, (val,))
-        a_img = cursor.fetchone()
-        for x in a_img:
-            final_img = base64.encodebytes(x)
+        try:
+            sql = "SELECT a_image FROM user_qa WHERE answer = %s;"
+            val = (resp)
+            cursor.execute(sql, (val,))
+            a_img = cursor.fetchone()
+            for x in a_img:
+                final_img = base64.encodebytes(x)
 
-        sql = "SELECT a_link FROM user_qa WHERE answer = %s;"
-        val = (resp)
-        cursor.execute(sql, (val,))
-        a_vid = cursor.fetchone()
-        for x in a_vid:
-            final_vid = x
+            sql = "SELECT a_link FROM user_qa WHERE answer = %s;"
+            val = (resp)
+            cursor.execute(sql, (val,))
+            a_vid = cursor.fetchone()
+            for x in a_vid:
+                final_vid = x
+        except:
+            final_img = ""
+            final_vid = ""
     
     try:
         trans2 = translate.translate_text(Text=resp, SourceLanguageCode="en", TargetLanguageCode=detected_lang)
@@ -175,4 +186,5 @@ def query_handler():
   
   
 if __name__ == '__main__': 
-    app.run(host='0.0.0.0')
+    # app.run(host='0.0.0.0') 
+    app.run(debug=True)
