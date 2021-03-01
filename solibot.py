@@ -147,12 +147,12 @@ def query_handler():
         resp = weather_data(latitude, longitude)
     else:
         resp = response(user_response, raw_response, detected_lang, category)
-        sql = "SELECT CONVERT(a_image USING utf8) FROM user_qa WHERE answer = %s;"
+        sql = "SELECT a_image FROM user_qa WHERE answer = %s;"
         val = (resp)
         cursor.execute(sql, (val,))
         a_img = cursor.fetchone()
         for x in a_img:
-            final_img = x
+            final_img = base64.encodebytes(x)
 
         sql = "SELECT a_link FROM user_qa WHERE answer = %s;"
         val = (resp)
@@ -168,7 +168,7 @@ def query_handler():
         final_response = resp
 
     server_response = {'response': final_response,
-                    'image': final_img,
+                    'image': str(final_img),
                     'video': final_vid}
 
     return json.dumps(server_response)
