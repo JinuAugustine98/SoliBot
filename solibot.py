@@ -78,7 +78,7 @@ def response(user_response, raw_response, conj_response, detected_lang, category
             sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
             val = (device, category, answer1['question'], today)
             cursor.execute(sql, val)
-            faqdb.commit()
+            faqdb.connection.commit()
         if(answer1['score']<confidence_score['max_score']):
             print("Couldn't find nearest query, asking User suggestion...")
             SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n"+answer1['question']+"\nDid you mean this? \nPlease answer yes or no.", "", ""]
@@ -91,7 +91,7 @@ def response(user_response, raw_response, conj_response, detected_lang, category
             sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
             val = (device, category, answer2['question'], today)
             cursor.execute(sql, val)
-            faqdb.commit()
+            faqdb.connection.commit()
         if(answer2['score']<confidence_score['max_score']):
             print("Couldn't find nearest query, asking User suggestion...")
             SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n"+answer2['question']+"\nDid you mean this? \nPlease answer yes or no.", "", ""]
@@ -106,7 +106,7 @@ def response(user_response, raw_response, conj_response, detected_lang, category
                 sql = "INSERT INTO unanswered (un_que_lang, un_que_cat, un_que_en) VALUES (%s, %s, %s)"
                 val = (raw_response, detected_lang, user_response)
                 cursor.execute(sql, val)
-                faqdb.commit()
+                faqdb.connection.commit()
             print("Couldn't find an answer :(\nUn-Answered Question pushed to FAQ Database")
             SoliBot_response = ["I'm sorry i didn't catch that! \nCould you please rephrase that query? \n\nI will learn from my experts and I will be able to answer you next time.", "", ""]
         except:
@@ -233,7 +233,7 @@ def query_handler():
             sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
             val = (device_id, category, q_res[0][1], today)
             cursor.execute(sql, val)
-            faqdb.commit()
+            faqdb.connection.commit()
     elif trans_response == "no":
         with faqdb.connection.cursor() as cursor:
             sql_l = "SELECT q_category, q_que FROM suggest_memory WHERE device_id = "+device_id+";"
@@ -245,7 +245,7 @@ def query_handler():
             sql = "INSERT INTO unanswered (un_que_lang, un_que_cat, un_que_en) VALUES (%s, %s, %s)"
             val = (detected_lang, q_cate, q_quest)
             cursor.execute(sql, val)
-            faqdb.commit()
+            faqdb.connection.commit()
         f_resp = "I'm sorry I couldn't find the suggestion related to your query. \nI will learn from my experts and I will be able to answer you next time."
         final_img = ""
         final_vid = ""
