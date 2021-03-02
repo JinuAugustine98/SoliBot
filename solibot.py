@@ -185,7 +185,7 @@ def query_handler():
     if trans_response in GREETING_INPUTS:
         try:
             with faqdb.connection.cursor() as cursor:
-                sql_l = "SELECT q_date FROM suggest_memory WHERE device_id = "+device_id+" ORDER BY ID DESC;"
+                sql_l = "SELECT q_date FROM suggest_memory WHERE device_id = "+"'"+device_id+"'"+" ORDER BY ID DESC;"
                 cursor.execute(sql_l)
                 sql_res = cursor.fetchall()
             chk = sql_res[0]
@@ -196,7 +196,7 @@ def query_handler():
                 final_vid = "" 
             elif(chk[0]<today):
                 with faqdb.connection.cursor() as cursor:
-                    sql_q = "SELECT q_que FROM suggest_memory WHERE device_id = "+device_id+" ORDER BY ID DESC;"
+                    sql_q = "SELECT q_que FROM suggest_memory WHERE device_id = = "+"'"+device_id+"'"+" ORDER BY ID DESC;"
                     cursor.execute(sql_q)
                     chk_que = cursor.fetchall()
                 resp =  time_greet+" again! \nLast time we spoke about "+chk_que[0][0].lower()+"\nHow may I help you today?"
@@ -221,7 +221,7 @@ def query_handler():
         final_vid = ""
     elif trans_response == "yes":
         with faqdb.connection.cursor() as cursor:
-            sql_l = "SELECT q_category, q_que FROM suggest_memory WHERE device_id = "+device_id+" ORDER BY ID DESC;"
+            sql_l = "SELECT q_category, q_que FROM suggest_memory WHERE device_id = "+"'"+device_id+"'"+" ORDER BY ID DESC;"
             cursor.execute(sql_l)
             q_res = cursor.fetchall()
         q_sim = find_most_similar(q_res[0][0], q_res[0][1])
@@ -236,7 +236,7 @@ def query_handler():
             faqdb.connection.commit()
     elif trans_response == "no":
         with faqdb.connection.cursor() as cursor:
-            sql_l = "SELECT q_category, q_que FROM suggest_memory WHERE device_id = "+device_id+";"
+            sql_l = "SELECT q_category, q_que FROM suggest_memory WHERE device_id = "+"'"+device_id+"'"+";"
             cursor.execute(sql_l)
             q_res = cursor.fetchall()
         q_quest = q_res[0][1]
@@ -273,4 +273,4 @@ def query_handler():
   
   
 if __name__ == '__main__': 
-    app.run(host='0.0.0.0')
+   app.run(host='0.0.0.0')
