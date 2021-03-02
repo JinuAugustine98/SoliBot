@@ -74,7 +74,7 @@ def response(user_response, raw_response, conj_response, detected_lang, category
                                                                         answer2['answer']))
 
     if (answer1['score']>answer2['score']):
-        with faqdb.cursor() as cursor:
+        with faqdb.connection.cursor() as cursor:
             sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
             val = (device, category, answer1['question'], today)
             cursor.execute(sql, val)
@@ -87,7 +87,7 @@ def response(user_response, raw_response, conj_response, detected_lang, category
             SoliBot_response = [answer1['answer'], answer1['image'], answer1['video']]
     
     elif(answer1['score']<=answer2['score']):
-        with faqdb.cursor() as cursor:
+        with faqdb.connection.cursor() as cursor:
             sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
             val = (device, category, answer2['question'], today)
             cursor.execute(sql, val)
@@ -102,7 +102,7 @@ def response(user_response, raw_response, conj_response, detected_lang, category
     else:
         try:
             #Sending Un-Answered Query to Database
-            with faqdb.cursor() as cursor:
+            with faqdb.connection.cursor() as cursor:
                 sql = "INSERT INTO unanswered (un_que_lang, un_que_cat, un_que_en) VALUES (%s, %s, %s)"
                 val = (raw_response, detected_lang, user_response)
                 cursor.execute(sql, val)
@@ -184,7 +184,7 @@ def query_handler():
 
     if trans_response in GREETING_INPUTS:
         try:
-            with faqdb.cursor() as cursor:
+            with faqdb.connection.cursor() as cursor:
                 sql_l = "SELECT q_date FROM suggest_memory WHERE device_id = "+device_id+" ORDER BY ID DESC;"
                 cursor.execute(sql_l)
                 sql_res = cursor.fetchall()
@@ -195,7 +195,7 @@ def query_handler():
                 final_img = ""
                 final_vid = "" 
             elif(chk[0]<today):
-                with faqdb.cursor() as cursor:
+                with faqdb.connection.cursor() as cursor:
                     sql_q = "SELECT q_que FROM suggest_memory WHERE device_id = "+device_id+" ORDER BY ID DESC;"
                     cursor.execute(sql_q)
                     chk_que = cursor.fetchall()
@@ -220,7 +220,7 @@ def query_handler():
         final_img = ""
         final_vid = ""
     elif trans_response == "yes":
-        with faqdb.cursor() as cursor:
+        with faqdb.connection.cursor() as cursor:
             sql_l = "SELECT q_category, q_que FROM suggest_memory WHERE device_id = "+device_id+" ORDER BY ID DESC;"
             cursor.execute(sql_l)
             q_res = cursor.fetchall()
@@ -229,19 +229,19 @@ def query_handler():
         final_img = q_sim['image']
         final_vid = q_sim['video']
         
-        with faqdb.cursor() as cursor:
+        with faqdb.connection.cursor() as cursor:
             sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
             val = (device_id, category, q_res[0][1], today)
             cursor.execute(sql, val)
             faqdb.commit()
     elif trans_response == "no":
-        with faqdb.cursor() as cursor:
+        with faqdb.connection.cursor() as cursor:
             sql_l = "SELECT q_category, q_que FROM suggest_memory WHERE device_id = "+device_id+";"
             cursor.execute(sql_l)
             q_res = cursor.fetchall()
         q_quest = q_res[0][1]
         q_cate = q_res[0][0]
-        with faqdb.cursor() as cursor:
+        with faqdb.connection.cursor() as cursor:
             sql = "INSERT INTO unanswered (un_que_lang, un_que_cat, un_que_en) VALUES (%s, %s, %s)"
             val = (detected_lang, q_cate, q_quest)
             cursor.execute(sql, val)
@@ -273,5 +273,4 @@ def query_handler():
   
   
 if __name__ == '__main__': 
-    # app.run(host='0.0.0.0') 
-    app.run(debug=True)
+    app.run(host='0.0.0.0')
