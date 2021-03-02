@@ -69,8 +69,10 @@ def find_most_similar(cate, word):
                 max['score'] = score
                 max['answer'] = each['Answer']
                 max['question'] = each['Question']
-        return {"score": max['score'], "answer": max['answer'], "question": max['question']}
+                max['image'] = each['image_path']
+                max['video'] = each['a_link']
+        return {"score": max['score'], "answer": max['answer'], "question": max['question'], "image": max['image'], "video": max['video']}
 
     except:
-        return {"score": 0.00, "answer": 'None', "question": 'None'}
+        return {"score": 0.00, "answer": 'None', "question": 'None', "image": 'None', "video": 'None'}
 
