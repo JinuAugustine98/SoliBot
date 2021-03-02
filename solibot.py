@@ -5,16 +5,25 @@ from rake_nltk import Rake
 from functools import reduce
 from similarity import find_most_similar
 import requests, json
-import mysql.connector
+from flask_mysqldb import MySQL
 from datetime import date, datetime
 
 
-faqdb = mysql.connector.connect(
-  host="soli-db.ciksb20swlbf.ap-south-1.rds.amazonaws.com",
-  user="faquser",
-  password="Faq@123",
-  database ="db_faqs"
-)
+# faqdb = mysql.connector.connect(
+#   host="soli-db.ciksb20swlbf.ap-south-1.rds.amazonaws.com",
+#   user="faquser",
+#   password="Faq@123",
+#   database ="db_faqs"
+# )
+
+app = Flask(__name__)
+
+app.config['MYSQL_USER'] = 'faquser'
+app.config['MYSQL_PASSWORD'] = 'Faq@123'
+app.config['MYSQL_DB'] = 'db_faqs'
+app.config['MYSQL_HOST'] = 'soli-db.ciksb20swlbf.ap-south-1.rds.amazonaws.com'
+
+faqdb = MySQL(app)
 
 r = Rake()
 
@@ -26,8 +35,6 @@ api_key = "4839184290ce2dd0d15508c3f09350e4"
    
 base_url = "http://api.openweathermap.org/data/2.5/weather?"
 
-
-app = Flask(__name__) 
 
 
 # Confidence of the Bot to give Answers
