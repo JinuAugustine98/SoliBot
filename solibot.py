@@ -5,16 +5,21 @@ from rake_nltk import Rake
 from functools import reduce
 from similarity import find_most_similar
 import requests, json
-import pymysql
+import mysql.connector
+from datetime import date, datetime
 
 
-faqdb = pymysql.connect(user='faquser', passwd='Faq@123',
-                                 host='soli-db.ciksb20swlbf.ap-south-1.rds.amazonaws.com',
-                                 database='db_faqs')
+faqdb = mysql.connector.connect(
+  host="soli-db.ciksb20swlbf.ap-south-1.rds.amazonaws.com",
+  user="faquser",
+  password="Faq@123",
+  database ="db_faqs"
+)
 
 cursor = faqdb.cursor()
 
 r = Rake()
+
 
 weather_api_key = "49caa7c4a444c3046739834965c9fb6b" 
 
@@ -29,7 +34,8 @@ app = Flask(__name__)
 
 # Confidence of the Bot to give Answers
 confidence_score = {
-        "min_score": 0.5
+        "min_score": 0.5,
+        "max_score": 0.7
     }
 
 
@@ -41,12 +47,14 @@ WEATHER_INPUTS = ["how's the weather", "how is the weather", "how is the weather
 
 
 # Generating response
-def response(user_response, raw_response, conj_response, detected_lang, category):
+def response(user_response, raw_response, conj_response, detected_lang, category, device):
     query1 = user_response
     answer1 = find_most_similar(category, query1)
 
     query2 = conj_response
     answer2 = find_most_similar(category, query2)
+
+    today = date.today()
 
     if (answer1['score'] > confidence_score['min_score']):
         # set off event asking if the response question is what they were looking for
@@ -61,11 +69,29 @@ def response(user_response, raw_response, conj_response, detected_lang, category
                                                                         answer2['answer']))
 
     if (answer1['score']>answer2['score']):
-        print("Selected Question: ",answer1['question'])
-        SoliBot_response = [answer1['answer'], answer1['image'], answer1['video']]
-    elif(answer1['score']<answer2['score']):
-        print("Selected Question: ",answer2['question'])
-        SoliBot_response = [answer2['answer'], answer2['image'], answer2['video']]
+        sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
+        val = (device, category, answer1['question'], today)
+        cursor.execute(sql, val)
+        faqdb.commit()
+        if(answer1['score']<confidence_score['max_score']):
+            print("Couldn't find nearest query, asking User suggestion...")
+            SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n"+answer1['question']+"\nDid you mean this? \nPlease answer yes or no.", "", ""]
+        else:
+            print("Selected Question: ",answer1['question'])
+            SoliBot_response = [answer1['answer'], answer1['image'], answer1['video']]
+    
+    elif(answer1['score']<=answer2['score']):
+        sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
+        val = (device, category, answer2['question'], today)
+        cursor.execute(sql, val)
+        faqdb.commit()
+        if(answer2['score']<confidence_score['max_score']):
+            print("Couldn't find nearest query, asking User suggestion...")
+            SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n"+answer2['question']+"\nDid you mean this? \nPlease answer yes or no.", "", ""]
+        else:
+            print("Selected Question: ",answer2['question'])
+            SoliBot_response = [answer2['answer'], answer2['image'], answer2['video']]
+    
     else:
         try:
             #Sending Un-Answered Query to Database
@@ -74,9 +100,9 @@ def response(user_response, raw_response, conj_response, detected_lang, category
             cursor.execute(sql, val)
             faqdb.commit()
             print("Couldn't find an answer :(\nUn-Answered Question pushed to FAQ Database")
-            SoliBot_response = "I'm sorry i didn't catch that! \nCould you please rephrase that query? \n\nI will learn from my experts and I will be able to answer you next time."
+            SoliBot_response = ["I'm sorry i didn't catch that! \nCould you please rephrase that query? \n\nI will learn from my experts and I will be able to answer you next time.", "", ""]
         except:
-            SoliBot_response = "I'm sorry i didn't catch that! \nCould you please rephrase that query? \n\nI will learn from my experts and I will be able to answer you next time."
+            SoliBot_response = ["I'm sorry i didn't catch that! \nCould you please rephrase that query? \n\nI will learn from my experts and I will be able to answer you next time.", "", ""]
             print("Un-Answered couldn't be pushed due to Server Error!")
     return SoliBot_response
 
@@ -113,6 +139,10 @@ def query_handler():
     time = input_data['time']
     latitude = input_data['latitude']
     longitude = input_data['longitude']
+    device_id = input_data['device_id']
+    detected_lang = input_data['language']
+
+    today = date.today()
 
     if time<13:
         time_greet = "Good Morning!"
@@ -125,12 +155,6 @@ def query_handler():
     raw_response=raw_response.lower()
     conj_response = raw_response
     try:
-        comprehend = boto3.client(service_name='comprehend', region_name='us-east-1')
-        result_det = json.dumps(comprehend.detect_dominant_language(Text = raw_response), sort_keys=True, indent=4)
-        detect = json.loads(result_det)
-        for d in detect['Languages']:
-            detected_lang = (d['LanguageCode'])
-
         translate = boto3.client(service_name='translate', region_name='us-east-1', use_ssl=True)
         trans = translate.translate_text(Text=raw_response, 
             SourceLanguageCode=detected_lang, TargetLanguageCode="en")
@@ -151,9 +175,29 @@ def query_handler():
         user_response += key+" "
 
     if trans_response in GREETING_INPUTS:
-        resp = time_greet+" I'm SoliBot! \nI'm here to help you with your queries. \nPlease ask me your question... "
-        final_img = ""
-        final_vid = ""   
+        try:
+            sql_l = "SELECT q_date FROM suggest_memory WHERE device_id = "+device_id+" ORDER BY ID DESC;"
+            cursor.execute(sql_l)
+            sql_res = cursor.fetchall()
+            chk = sql_res[0]
+
+            if(chk[0]==today):
+                resp = time_greet+" \nNice to see you again! \nPlease ask me your next query! "
+                final_img = ""
+                final_vid = "" 
+            elif(chk[0]<today):
+                sql_q = "SELECT q_que FROM suggest_memory WHERE device_id = "+device_id+" ORDER BY ID DESC;"
+                cursor.execute(sql_q)
+                chk_que = cursor.fetchall()
+                print(chk_que)
+                resp =  time_greet+" again! \nLast time we spoke about "+chk_que[0][0].lower()+"\nHow may I help you today?"
+                final_img = ""
+                final_vid = ""
+        except:
+            resp = time_greet+" I'm SoliBot! \nI'm here to help you with all your queries. \nPlease ask me your query..."
+            final_img = ""
+            final_vid = ""
+
     elif trans_response in THANK_INPUTS:
         resp = "You are Welcome :) \nPlease come back for any more queries..."
         final_img = ""
@@ -166,8 +210,35 @@ def query_handler():
         resp = weather_data(latitude, longitude)
         final_img = ""
         final_vid = ""
+    elif trans_response == "yes":
+        sql_l = "SELECT q_category, q_que FROM suggest_memory WHERE device_id = "+device_id+" ORDER BY ID DESC;"
+        cursor.execute(sql_l)
+        q_res = cursor.fetchall()
+        q_sim = find_most_similar(q_res[0][0], q_res[0][1])
+        f_resp = q_sim['answer']
+        final_img = q_sim['image']
+        final_vid = q_sim['video']
+        
+        sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
+        val = (device_id, category, q_res[0][1], today)
+        cursor.execute(sql, val)
+        faqdb.commit()
+    elif trans_response == "no":
+        sql_l = "SELECT q_category, q_que FROM suggest_memory WHERE device_id = "+device_id+";"
+        cursor.execute(sql_l)
+        q_res = cursor.fetchall()
+        q_quest = q_res[0][1]
+        q_cate = q_res[0][0]
+        sql = "INSERT INTO unanswered (un_que_lang, un_que_cat, un_que_en) VALUES (%s, %s, %s)"
+        val = (detected_lang, q_cate, q_quest)
+        cursor.execute(sql, val)
+        faqdb.commit()
+        f_resp = "I'm sorry I couldn't find the suggestion related to your query. \nI will learn from my experts and I will be able to answer you next time."
+        final_img = ""
+        final_vid = ""
+        print("User didn't accept suggestion :( \nUn-Answered Question pushed to FAQ Database")
     else:
-        resp = response(user_response, raw_response, conj_response, detected_lang, category)
+        resp = response(user_response, raw_response, conj_response, detected_lang, category, device_id)
         f_resp = resp[0]
         final_img = resp[1]
         final_vid = resp[2]
@@ -178,7 +249,6 @@ def query_handler():
     except:
         final_response = resp
 
-    faqdb.close()
 
     server_response = {'response': final_response,
                     'image': final_img,
