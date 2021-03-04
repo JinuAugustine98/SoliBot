@@ -72,7 +72,7 @@ def response(user_response, raw_response, conj_response, detected_lang, category
             faqdb.connection.commit()
         if(answer1['score']<confidence_score['max_score']):
             print("Couldn't find nearest query, asking User suggestion...")
-            SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n"+answer1['question']+"\nDid you mean this? \nPlease answer yes or no.", "", ""]
+            SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n\n"+answer1['question']+"\n\nDid you mean this? \nPlease answer yes or no.", "", ""]
         else:
             print("Selected Question: ",answer1['question'])
             SoliBot_response = [answer1['answer'], answer1['image'], answer1['video']]
@@ -85,7 +85,7 @@ def response(user_response, raw_response, conj_response, detected_lang, category
             faqdb.connection.commit()
         if(answer2['score']<confidence_score['max_score']):
             print("Couldn't find nearest query, asking User suggestion...")
-            SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n"+answer2['question']+"\nDid you mean this? \nPlease answer yes or no.", "", ""]
+            SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n\n"+answer2['question']+"\n\nDid you mean this? \nPlease answer yes or no.", "", ""]
         else:
             print("Selected Question: ",answer2['question'])
             SoliBot_response = [answer2['answer'], answer2['image'], answer2['video']]
