@@ -161,6 +161,8 @@ def query_handler():
     # if(category=="Tea"):
     #     farmer_id = input_data['farmer_id']
 
+    print("User Query :",raw_response)
+    print("Query Category :",category)
 
 
     raw_response=raw_response.lower()
@@ -173,6 +175,8 @@ def query_handler():
     
     except:
         trans_response = raw_response
+
+    print("Translated Response :",trans_response)
 
     r.extract_keywords_from_text(trans_response)
     keys_response = r.get_ranked_phrases()
