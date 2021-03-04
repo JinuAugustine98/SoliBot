@@ -3,11 +3,12 @@ import requests
 import time
 import urllib
 import config
-from googletrans import Translator
 import mysql.connector
 from similarity import find_most_similar
 from corpus import CORPUS
-
+import boto3
+from rake_nltk import Rake
+from functools import reduce
 
 
 faqdb = mysql.connector.connect(
@@ -18,6 +19,8 @@ faqdb = mysql.connector.connect(
 )
 
 cursor = faqdb.cursor() 
+
+r = Rake()
 
 TOKEN = "1398831446:AAGxaLjuv4y7ZWCTa5UqDmuEgg5z1CFZxrA"
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
@@ -32,6 +35,7 @@ confidence_score = {
 GREETING_INPUTS = ["hello", "hi", "greetings", "sup", "what's up","hey"]
 THANK_INPUTS = ["thanks", "thank you"]
 EXIT_INPUTS = ["bye", "cool", "ok", "great"]
+START_INPUTS = ["start", "/start"]
 
 
 # Generating response
@@ -92,6 +96,7 @@ def echo_all(updates):
     for update in updates["result"]:
         raw_response = update["message"]["text"]
         raw_response=raw_response.lower()
+        print("User Query: ", raw_response)
     
     try:
         comprehend = boto3.client(service_name='comprehend', region_name='us-east-1')
@@ -113,22 +118,24 @@ def echo_all(updates):
     
     print("Identified Keywords: ",keys_response)
 
+
     unique = reduce(lambda l, x: l.append(x) or l if x not in l else l, keys_response, [])
     user_response = ""
+
 
     for key in unique:
         user_response += key+" "
 
     if trans_response in GREETING_INPUTS:
-        resp = time_greet+" I'm SoliBot! \nI'm here to help you with your queries. \nPlease ask me your question... "
+        resp = " I'm SoliBot! \nI'm here to help you with your queries. \nPlease ask me your question... "
     elif trans_response in THANK_INPUTS:
         resp = "You are Welcome :) \nPlease come back for any more queries..."
     elif trans_response in EXIT_INPUTS:
         resp = "See you Around! \nPlease come back for any more queries :)"
-    elif trans_response in WEATHER_INPUTS:
-        resp = weather_data(cordinates)
+    elif trans_response in START_INPUTS:
+        resp = "Welcome to SoliBot! \nI'm here to help you with all your queries."
     else:
-        resp = response(user_response, raw_response, detected_lang, category)
+        resp = response(user_response, raw_response, detected_lang)
     
     try:
         trans2 = translate.translate_text(Text=resp, SourceLanguageCode="en", TargetLanguageCode=detected_lang)
@@ -136,8 +143,8 @@ def echo_all(updates):
     except:
         final_response = resp
 
-        chat = update["message"]["chat"]["id"]
-        send_message(final_response, chat)
+    chat = update["message"]["chat"]["id"]
+    send_message(final_response, chat)
 
 
 def get_last_chat_id_and_text(updates):

@@ -219,7 +219,11 @@ def query_handler():
         resp = weather_data(latitude, longitude)
         final_img = ""
         final_vid = ""
+<<<<<<< HEAD
     elif trans_response.lower() == "yes":
+=======
+    elif trans_response == "yes":
+>>>>>>> 9d21be0386ef297b40a3866581e365002e7c70a9
         with faqdb.connection.cursor() as cursor:
             sql_l = "SELECT q_category, q_que FROM suggest_memory WHERE device_id = "+"'"+device_id+"'"+" ORDER BY ID DESC;"
             cursor.execute(sql_l)
@@ -234,7 +238,11 @@ def query_handler():
             val = (device_id, category, q_res[0][1], today)
             cursor.execute(sql, val)
             faqdb.connection.commit()
+<<<<<<< HEAD
     elif trans_response.lower() == "no":
+=======
+    elif trans_response == "no":
+>>>>>>> 9d21be0386ef297b40a3866581e365002e7c70a9
         with faqdb.connection.cursor() as cursor:
             sql_l = "SELECT q_category, q_que FROM suggest_memory WHERE device_id = "+"'"+device_id+"'"+";"
             cursor.execute(sql_l)
@@ -273,5 +281,9 @@ def query_handler():
   
   
 if __name__ == '__main__': 
+<<<<<<< HEAD
     # app.run(host='0.0.0.0') 
     app.run(debug=True)
+=======
+   app.run(host='0.0.0.0')
+>>>>>>> 9d21be0386ef297b40a3866581e365002e7c70a9
