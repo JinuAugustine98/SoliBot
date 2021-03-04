@@ -122,9 +122,9 @@ def weather_data(latitude, longitude):
             temperature_kelvin = weather_result['main']['temp']
             temperature_celsius = int(temperature_kelvin-273.15)
             humidity = weather_result['main']['humidity']
-            wind_speed = weather_result['wind']['speed']*3.6
+            wind_speed = int(weather_result['wind']['speed']*3.6)
             place_name = weather_result['name']
-            weather_result = "In "+str(place_name)+", it looks like "+str(weather_description)+", the temperature is "+str(temperature_celsius)+"°C, the humidity is "+str(humidity)+"% and the wind speed is "+str(wind_speed)+"km/hr."
+            weather_result = "In "+str(place_name)+", it looks like "+str(weather_description)+", the temperature is "+str(temperature_celsius)+"°C, the humidity is "+str(humidity)+"% and the wind speed is "+str(wind_speed)+" km/hr."
         except:
             weather_result = "Sorry I'm not able to fetch the Weather details currently. \nPlease try again later..."
     return weather_result
