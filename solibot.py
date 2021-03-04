@@ -9,12 +9,6 @@ from flask_mysqldb import MySQL
 from datetime import date, datetime
 
 
-# faqdb = mysql.connector.connect(
-#   host="soli-db.ciksb20swlbf.ap-south-1.rds.amazonaws.com",
-#   user="faquser",
-#   password="Faq@123",
-#   database ="db_faqs"
-# )
 
 app = Flask(__name__)
 
