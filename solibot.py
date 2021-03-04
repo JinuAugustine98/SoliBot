@@ -122,7 +122,7 @@ def weather_data(latitude, longitude):
             temperature_kelvin = weather_result['main']['temp']
             temperature_celsius = int(temperature_kelvin-273.15)
             humidity = weather_result['main']['humidity']
-            wind_speed = weather_result['wind']['speed']
+            wind_speed = weather_result['wind']['speed']*3.6
             place_name = weather_result['name']
             weather_result = "In "+str(place_name)+", it looks like "+str(weather_description)+", the temperature is "+str(temperature_celsius)+"°C, the humidity is "+str(humidity)+"% and the wind speed is "+str(wind_speed)+"m/s."
         except:
@@ -231,7 +231,7 @@ def query_handler():
         resp = "See you Around! \nPlease come back for any more queries :)"
         final_img = ""
         final_vid = ""    
-    elif trans_response in WEATHER_INPUTS:
+    elif trans_response.lower() in WEATHER_INPUTS:
         resp = weather_data(latitude, longitude)
         final_img = ""
         final_vid = ""
