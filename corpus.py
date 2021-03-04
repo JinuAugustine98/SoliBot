@@ -25,7 +25,6 @@ faqdb = mysql.connector.connect(
 cursor = faqdb.cursor()
 clock = datetime.datetime.now().date() 
 
-print(clock)
 cursor.execute("SELECT Question, Answer, image_path, a_link FROM user_qa")
 CORPUS = dictfetchall(cursor)
 

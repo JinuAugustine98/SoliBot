@@ -26,9 +26,6 @@ weather_api_key = "49caa7c4a444c3046739834965c9fb6b"
 
 
 api_key = "4839184290ce2dd0d15508c3f09350e4"
-   
-base_url = "http://api.openweathermap.org/data/2.5/weather?"
-
 
 
 # Confidence of the Bot to give Answers
@@ -114,15 +111,21 @@ def weather_data(latitude, longitude):
         weather_result = "Sorry! You have disabled Location Services hence I'm not able to determine the weather. \nIf you wish to see Weather information, please enable Location Services for the app."
 
     else:
-        # try:
-        weather_url = "api.openweathermap.org/data/2.5/weather?lat={"+str(latitude)+"}&lon={"+str(longitude)+"}&appid={"+weather_api_key+"}"
-        print(weather_url)
-        weather_request = requests.get(url = weather_url)
-        weather_result = weather_request.json()
-        print(weather_result)
-        
-        # except:
-        #     weather_result = "Sorry I'm not able to fetch the Weather details currently. \nPlease try again later..."
+        try:
+            weather_url = "http://api.openweathermap.org/data/2.5/weather?lat="+str(latitude)+"&lon="+str(longitude)+"&appid="+weather_api_key+""
+            print(weather_url)
+            weather_request = requests.get(url = weather_url)
+            weather_result = weather_request.json()
+            print(weather_result)
+            weather_description = weather_result['weather'][0]['description']
+            temperature_kelvin = weather_result['main']['temp']
+            temperature_celsius = int(temperature_kelvin-273.15)
+            humidity = weather_result['main']['humidity']
+            wind_speed = weather_result['wind']['speed']
+            place_name = weather_result['name']
+            weather_result = "In "+str(place_name)+", it looks like "+str(weather_description)+", the temperature is "+str(temperature_celsius)+"°C, the humidity is "+str(humidity)+"% and the wind speed is "+str(wind_speed)+"m/s."
+        except:
+            weather_result = "Sorry I'm not able to fetch the Weather details currently. \nPlease try again later..."
     return weather_result
 
 @app.route('/', methods = ['GET']) 
@@ -152,6 +155,11 @@ def query_handler():
         time_greet = "Good Afternoon!"
     else:
         time_greet = "Good Evening!"
+
+
+    # if(category=="Tea"):
+    #     farmer_id = input_data['farmer_id']
+
 
 
     raw_response=raw_response.lower()
