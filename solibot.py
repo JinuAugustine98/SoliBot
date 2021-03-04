@@ -39,7 +39,7 @@ confidence_score = {
 GREETING_INPUTS = ["hello", "hi", "greetings", "sup", "what's up","hey"]
 THANK_INPUTS = ["thanks", "thank you"]
 EXIT_INPUTS = ["bye", "cool", "ok", "great"]
-WEATHER_INPUTS = ["how's the weather", "how is the weather", "how is the weather today", "rain", "will it rain today", "when will it rain"]
+WEATHER_INPUTS = ["weather", "weather today", "what is today's weather", "today's weather", "how's the weather", "how is the weather", "how is the weather today", "rain", "will it rain today", "when will it rain"]
 
 
 # Generating response
@@ -64,31 +64,32 @@ def response(user_response, raw_response, conj_response, detected_lang, category
                                                                         answer2['score']*100,
                                                                         answer2['answer']))
 
-    if (answer1['score']>answer2['score']):
-        with faqdb.connection.cursor() as cursor:
-            sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
-            val = (device, category, answer1['question'], today)
-            cursor.execute(sql, val)
-            faqdb.connection.commit()
-        if(answer1['score']<confidence_score['max_score']):
-            print("Couldn't find nearest query, asking User suggestion...")
-            SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n\n"+answer1['question']+"\n\nDid you mean this? \nPlease answer yes or no.", "", ""]
+    if(answer1['score']>0 and answer2['score']>0):
+        if (answer1['score']>answer2['score']):
+            with faqdb.connection.cursor() as cursor:
+                sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
+                val = (device, category, answer1['question'], today)
+                cursor.execute(sql, val)
+                faqdb.connection.commit()
+            if(answer1['score']<confidence_score['max_score']):
+                print("Couldn't find nearest query, asking User suggestion...")
+                SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n\n"+answer1['question']+"\n\nDid you mean this? \nPlease answer yes or no.", "", ""]
+            else:
+                print("Selected Question: ",answer1['question'])
+                SoliBot_response = [answer1['answer'], answer1['image'], answer1['video']]
+        
         else:
-            print("Selected Question: ",answer1['question'])
-            SoliBot_response = [answer1['answer'], answer1['image'], answer1['video']]
-    
-    elif(answer1['score']<=answer2['score']):
-        with faqdb.connection.cursor() as cursor:
-            sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
-            val = (device, category, answer2['question'], today)
-            cursor.execute(sql, val)
-            faqdb.connection.commit()
-        if(answer2['score']<confidence_score['max_score']):
-            print("Couldn't find nearest query, asking User suggestion...")
-            SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n\n"+answer2['question']+"\n\nDid you mean this? \nPlease answer yes or no.", "", ""]
-        else:
-            print("Selected Question: ",answer2['question'])
-            SoliBot_response = [answer2['answer'], answer2['image'], answer2['video']]
+            with faqdb.connection.cursor() as cursor:
+                sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
+                val = (device, category, answer2['question'], today)
+                cursor.execute(sql, val)
+                faqdb.connection.commit()
+            if(answer2['score']<confidence_score['max_score']):
+                print("Couldn't find nearest query, asking User suggestion...")
+                SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n\n"+answer2['question']+"\n\nDid you mean this? \nPlease answer yes or no.", "", ""]
+            else:
+                print("Selected Question: ",answer2['question'])
+                SoliBot_response = [answer2['answer'], answer2['image'], answer2['video']]
     
     else:
         try:
