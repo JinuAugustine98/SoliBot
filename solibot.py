@@ -200,6 +200,15 @@ def query_handler():
             resp = time_greet+" I'm SoliBot! \nI'm here to help you with all your queries. \nPlease ask me your query..."
             final_img = ""
             final_vid = ""
+            try:
+                with faqdb.connection.cursor() as cursor:
+                    sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
+                    val = (device_id, category, trans_response, today)
+                    cursor.execute(sql, val)
+                    faqdb.connection.commit()
+            except:
+                pass
+
 
     elif trans_response in THANK_INPUTS:
         resp = "You are Welcome :) \nPlease come back for any more queries..."
