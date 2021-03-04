@@ -114,10 +114,8 @@ def weather_data(latitude, longitude):
     else:
         try:
             weather_url = "http://api.openweathermap.org/data/2.5/weather?lat="+str(latitude)+"&lon="+str(longitude)+"&appid="+weather_api_key+""
-            print(weather_url)
             weather_request = requests.get(url = weather_url)
             weather_result = weather_request.json()
-            print(weather_result)
             weather_description = weather_result['weather'][0]['description']
             temperature_kelvin = weather_result['main']['temp']
             temperature_celsius = int(temperature_kelvin-273.15)
