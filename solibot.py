@@ -229,7 +229,7 @@ def query_handler():
         resp = "See you Around! \nPlease come back for any more queries :)"
         final_img = ""
         final_vid = ""    
-    elif str(translated_response) in WEATHER_INPUTS:
+    elif translated_response in EXIT_INPUTS:
         resp = weather_data(latitude, longitude)
         final_img = ""
         final_vid = ""
