@@ -171,6 +171,8 @@ def query_handler():
     except:
         trans_response = raw_response
 
+    translated_response = trans_response.lower()
+    print("Translated Response :",translated_response)
 
     r.extract_keywords_from_text(trans_response)
     keys_response = r.get_ranked_phrases()
@@ -183,8 +185,7 @@ def query_handler():
     for key in unique:
         user_response += key+" "
 
-    translated_response = trans_response.lower()
-    print("Translated Response :",translated_response)
+    
 
     if translated_response in GREETING_INPUTS:
         try:
@@ -228,7 +229,7 @@ def query_handler():
         resp = "See you Around! \nPlease come back for any more queries :)"
         final_img = ""
         final_vid = ""    
-    elif translated_response in WEATHER_INPUTS:
+    elif str(translated_response) in WEATHER_INPUTS:
         resp = weather_data(latitude, longitude)
         final_img = ""
         final_vid = ""
@@ -241,7 +242,6 @@ def query_handler():
         f_resp = q_sim['answer']
         final_img = q_sim['image']
         final_vid = q_sim['video']
-        
         with faqdb.connection.cursor() as cursor:
             sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
             val = (device_id, category, q_res[0][1], today)
