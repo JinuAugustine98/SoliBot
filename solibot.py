@@ -271,9 +271,9 @@ def query_handler():
         farmer_star = input_data['farmer_star']
 
         if farmer_star == 0:
-            f_resp = time_greet+" "+farmer_name+", congragulations for registering with Trinitea!"
+            f_resp = time_greet+" "+farmer_name+", congragulations for registering with Trinitea! \nHow can I help you?"
         else:
-            f_resp = time_greet+" "+farmer_name+", congragulations on receiving a "+str(farmer_star)+" star rating!"
+            f_resp = time_greet+" "+farmer_name+", congragulations on receiving a "+str(farmer_star)+" star rating! \nHow can I help you?"
         final_img = ""
         final_vid = ""
     else:
