@@ -154,11 +154,7 @@ def query_handler():
         time_greet = "Good Afternoon!"
     else:
         time_greet = "Good Evening!"
-
-
-    if(category=="Tea"):
-        farmer_name = input_data['farmer_name']
-        farmer_star = input_data['farmer_star']
+        
 
     print("User Query :",raw_response)
     print("Query Category :",category)
@@ -268,6 +264,10 @@ def query_handler():
         final_vid = ""
         print("User didn't accept suggestion :( \nUn-Answered Question pushed to FAQ Database")
     elif raw_response == "start_solibot@123":
+
+        farmer_name = input_data['farmer_name']
+        farmer_star = input_data['farmer_star']
+
         if farmer_star == 0:
             f_resp = time_greet+" "+farmer_name+", congragulations for registering with Trinitea!"
         else:
