@@ -225,10 +225,10 @@ def query_handler():
         resp = "You are Welcome :) \nPlease come back for any more queries..."
         final_img = ""
         final_vid = ""    
-    elif translated_response in EXIT_INPUTS:
-        resp = "See you Around! \nPlease come back for any more queries :)"
-        final_img = ""
-        final_vid = ""    
+    # elif translated_response in EXIT_INPUTS:
+    #     resp = "See you Around! \nPlease come back for any more queries :)"
+    #     final_img = ""
+    #     final_vid = ""    
     elif translated_response in EXIT_INPUTS:
         resp = weather_data(latitude, longitude)
         final_img = ""
