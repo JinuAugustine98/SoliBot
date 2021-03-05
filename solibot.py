@@ -39,7 +39,7 @@ confidence_score = {
 GREETING_INPUTS = ["hello", "hi", "greetings", "sup", "what's up","hey"]
 THANK_INPUTS = ["thanks", "thank you"]
 EXIT_INPUTS = ["bye", "cool", "ok", "great"]
-WEATHER_INPUTS = ["weather", "weather today", "what is today's weather", "today's weather", "how's the weather", "how is the weather", "how is the weather today", "rain", "will it rain today", "when will it rain"]
+WEATHER_INPUTS = ["weather", "weather today", "today's weather", "how is the weather", "how is the weather today", "rain", "will it rain today", "when will it rain"]
 
 
 # Generating response
@@ -225,11 +225,11 @@ def query_handler():
         resp = "You are Welcome :) \nPlease come back for any more queries..."
         final_img = ""
         final_vid = ""    
-    # elif translated_response in EXIT_INPUTS:
-    #     resp = "See you Around! \nPlease come back for any more queries :)"
-    #     final_img = ""
-    #     final_vid = ""    
     elif translated_response in EXIT_INPUTS:
+        resp = "See you Around! \nPlease come back for any more queries :)"
+        final_img = ""
+        final_vid = ""    
+    elif translated_response in WEATHER_INPUTS:
         resp = weather_data(latitude, longitude)
         final_img = ""
         final_vid = ""
