@@ -156,8 +156,9 @@ def query_handler():
         time_greet = "Good Evening!"
 
 
-    # if(category=="Tea"):
-    #     farmer_id = input_data['farmer_id']
+    if(category=="Tea"):
+        farmer_name = input_data['farmer_name']
+        farmer_star = input_data['farmer_star']
 
     print("User Query :",raw_response)
     print("Query Category :",category)
@@ -187,7 +188,9 @@ def query_handler():
     for key in unique:
         user_response += key+" "
 
-    if trans_response in GREETING_INPUTS:
+    translated_response = trans_response.lower()
+
+    if translated_response in GREETING_INPUTS:
         try:
             with faqdb.connection.cursor() as cursor:
                 sql_l = "SELECT q_date FROM suggest_memory WHERE device_id = "+"'"+device_id+"'"+" ORDER BY ID DESC;"
@@ -221,19 +224,19 @@ def query_handler():
                 pass
 
 
-    elif trans_response in THANK_INPUTS:
+    elif translated_response in THANK_INPUTS:
         resp = "You are Welcome :) \nPlease come back for any more queries..."
         final_img = ""
         final_vid = ""    
-    elif trans_response in EXIT_INPUTS:
+    elif translated_response in EXIT_INPUTS:
         resp = "See you Around! \nPlease come back for any more queries :)"
         final_img = ""
         final_vid = ""    
-    elif trans_response.lower() in WEATHER_INPUTS:
+    elif translated_response in WEATHER_INPUTS:
         resp = weather_data(latitude, longitude)
         final_img = ""
         final_vid = ""
-    elif trans_response.lower() == "yes":
+    elif translated_response == "yes":
         with faqdb.connection.cursor() as cursor:
             sql_l = "SELECT q_category, q_que FROM suggest_memory WHERE device_id = "+"'"+device_id+"'"+" ORDER BY ID DESC;"
             cursor.execute(sql_l)
@@ -248,7 +251,7 @@ def query_handler():
             val = (device_id, category, q_res[0][1], today)
             cursor.execute(sql, val)
             faqdb.connection.commit()
-    elif trans_response.lower() == "no":
+    elif translated_response == "no":
         with faqdb.connection.cursor() as cursor:
             sql_l = "SELECT q_category, q_que FROM suggest_memory WHERE device_id = "+"'"+device_id+"'"+";"
             cursor.execute(sql_l)
@@ -264,6 +267,13 @@ def query_handler():
         final_img = ""
         final_vid = ""
         print("User didn't accept suggestion :( \nUn-Answered Question pushed to FAQ Database")
+    elif raw_response == "start_solibot@123":
+        if farmer_star == 0:
+            f_resp = time_greet+" "+farmer_name+", congragulations for registering with Trinitea!"
+        else:
+            f_resp = time_greet+" "+farmer_name+", congragulations on receiving a "+str(farmer_star)+" star rating!"
+        final_img = ""
+        final_vid = ""
     else:
         resp = response(user_response, raw_response, conj_response, detected_lang, category, device_id)
         f_resp = resp[0]
