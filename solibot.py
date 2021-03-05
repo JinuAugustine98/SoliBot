@@ -171,8 +171,10 @@ def query_handler():
     except:
         trans_response = raw_response
 
-    translated_response = trans_response.lower()
-    print("Translated Response :",translated_response)
+    trans_response = trans_response.lower()
+    trans_response = trans_response.trim()
+
+    print("Translated Response :",trans_response)
 
     r.extract_keywords_from_text(trans_response)
     keys_response = r.get_ranked_phrases()
@@ -187,7 +189,7 @@ def query_handler():
 
     
 
-    if translated_response in GREETING_INPUTS:
+    if trans_response in GREETING_INPUTS:
         try:
             with faqdb.connection.cursor() as cursor:
                 sql_l = "SELECT q_date FROM suggest_memory WHERE device_id = "+"'"+device_id+"'"+" ORDER BY ID DESC;"
@@ -221,19 +223,19 @@ def query_handler():
                 pass
 
 
-    elif translated_response in THANK_INPUTS:
+    elif trans_response in THANK_INPUTS:
         resp = "You are Welcome :) \nPlease come back for any more queries..."
         final_img = ""
         final_vid = ""    
-    elif translated_response in EXIT_INPUTS:
+    elif trans_response in EXIT_INPUTS:
         resp = "See you Around! \nPlease come back for any more queries :)"
         final_img = ""
         final_vid = ""    
-    elif translated_response in WEATHER_INPUTS:
+    elif trans_response in WEATHER_INPUTS:
         resp = weather_data(latitude, longitude)
         final_img = ""
         final_vid = ""
-    elif translated_response == "yes":
+    elif trans_response == "yes":
         with faqdb.connection.cursor() as cursor:
             sql_l = "SELECT q_category, q_que FROM suggest_memory WHERE device_id = "+"'"+device_id+"'"+" ORDER BY ID DESC;"
             cursor.execute(sql_l)
@@ -247,7 +249,7 @@ def query_handler():
             val = (device_id, category, q_res[0][1], today)
             cursor.execute(sql, val)
             faqdb.connection.commit()
-    elif translated_response == "no":
+    elif trans_response == "no":
         with faqdb.connection.cursor() as cursor:
             sql_l = "SELECT q_category, q_que FROM suggest_memory WHERE device_id = "+"'"+device_id+"'"+";"
             cursor.execute(sql_l)
