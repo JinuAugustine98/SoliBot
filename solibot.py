@@ -171,7 +171,6 @@ def query_handler():
     except:
         trans_response = raw_response
 
-    print("Translated Response :",trans_response)
 
     r.extract_keywords_from_text(trans_response)
     keys_response = r.get_ranked_phrases()
@@ -185,6 +184,7 @@ def query_handler():
         user_response += key+" "
 
     translated_response = trans_response.lower()
+    print("Translated Response :",translated_response)
 
     if translated_response in GREETING_INPUTS:
         try:
