@@ -159,8 +159,6 @@ def query_handler():
     print("User Query :",raw_response)
     print("Query Category :",category)
 
-
-    raw_response=raw_response.lower()
     conj_response = raw_response
     try:
         translate = boto3.client(service_name='translate', region_name='us-east-1', use_ssl=True)
