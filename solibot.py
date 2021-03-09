@@ -146,7 +146,6 @@ def query_handler():
     device_id = input_data['device_id']
     detected_lang = input_data['language']
 
-    print(detected_lang)
 
     today = date.today()
 
@@ -162,14 +161,14 @@ def query_handler():
     print("Query Category :",category)
 
     conj_response = raw_response
-    # try:
-    translate = boto3.client(service_name='translate', region_name='us-east-1', use_ssl=True)
-    trans = translate.translate_text(Text=raw_response, 
-        SourceLanguageCode=detected_lang, TargetLanguageCode="en")
-    trans_response = trans["TranslatedText"]
+    try:
+        translate = boto3.client(service_name='translate', region_name='us-east-1', use_ssl=True)
+        trans = translate.translate_text(Text=raw_response, 
+            SourceLanguageCode=detected_lang, TargetLanguageCode="en")
+        trans_response = trans["TranslatedText"]
     
-    # except:
-    #     trans_response = raw_response
+    except:
+        trans_response = raw_response
 
     print("Translated Response :",trans_response)    
 
