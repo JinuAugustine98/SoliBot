@@ -146,6 +146,8 @@ def query_handler():
     device_id = input_data['device_id']
     detected_lang = input_data['language']
 
+    print(detected_lang)
+
     today = date.today()
 
     if time<13:
