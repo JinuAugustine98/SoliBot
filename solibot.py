@@ -7,6 +7,7 @@ from similarity import find_most_similar
 import requests, json
 from flask_mysqldb import MySQL
 from datetime import date, datetime
+import os
 
 
 
@@ -20,6 +21,8 @@ app.config['MYSQL_HOST'] = 'soli-db.ciksb20swlbf.ap-south-1.rds.amazonaws.com'
 faqdb = MySQL(app)
 
 r = Rake()
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="/Users/jinuaugustine/Downloads/gcloud-translate.json"
 
 
 weather_api_key = "49caa7c4a444c3046739834965c9fb6b" 
