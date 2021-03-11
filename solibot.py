@@ -23,7 +23,7 @@ faqdb = MySQL(app)
 
 r = Rake()
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="/Users/jinuaugustine/Downloads/gcloud-translate.json"
+# os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="/Users/jinuaugustine/Downloads/gcloud-translate.json"
 
 
 weather_api_key = "49caa7c4a444c3046739834965c9fb6b" 
