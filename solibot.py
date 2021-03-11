@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, jsonify, request 
-from google.cloud import translate
+# from google.cloud import translate
 import boto3
 from rake_nltk import Rake
 from functools import reduce
