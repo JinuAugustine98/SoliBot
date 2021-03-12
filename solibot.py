@@ -182,7 +182,7 @@ def query_handler():
     conj_response = raw_response
     
     try:
-    trans_response = translation(raw_response, "en")
+        trans_response = translation(raw_response, "en")
     except:
         trans_response = raw_response
    
