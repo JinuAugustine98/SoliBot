@@ -199,7 +199,7 @@ def query_handler():
     trans_response = trans_response.lower()
     trans_response = trans_response.strip()
 
-    conj_response = raw_response
+    conj_response = trans_response
 
     print("Translated Response :",trans_response)
 
