@@ -122,13 +122,13 @@ def translation(text, lang):
     # Detail on supported types can be found here:
     # https://cloud.google.com/translate/docs/supported-formats
     response = client.translate_text(
-        request={
+
             "parent": parent,
             "contents": [text],
             "mime_type": "text/plain",  # mime types: text/plain, text/html
             # "source_language_code": "",
             "target_language_code": lang,
-        }
+        
     )
 
     # Display the translation for each input text provided
