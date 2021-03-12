@@ -123,8 +123,6 @@ def translation(text, target):
 
     translated_text = result["translatedText"]
     print(u"Detected source language: {}".format(result["detectedSourceLanguage"]))
-    for translation in response.translations:
-        translated_text = translation.translated_text
 
     return translated_text
 
