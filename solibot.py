@@ -68,7 +68,7 @@ def response(user_response, raw_response, conj_response, detected_lang, category
                                                                         answer2['score']*100,
                                                                         answer2['answer']))
 
-    if(answer1['score']>0 and answer2['score']>0):
+    if(answer1['score']>=0 and answer2['score']>=0):
         if (answer1['score']>answer2['score']):
             with faqdb.connection.cursor() as cursor:
                 sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
@@ -82,7 +82,7 @@ def response(user_response, raw_response, conj_response, detected_lang, category
                 print("Selected Question: ",answer1['question'])
                 SoliBot_response = [answer1['answer'], answer1['image'], answer1['video']]
         
-        else:
+        elif (answer1['score']<answer2['score']):
             with faqdb.connection.cursor() as cursor:
                 sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
                 val = (device, category, answer2['question'], today)
@@ -94,6 +94,20 @@ def response(user_response, raw_response, conj_response, detected_lang, category
             else:
                 print("Selected Question: ",answer2['question'])
                 SoliBot_response = [answer2['answer'], answer2['image'], answer2['video']]
+        else:
+            try:
+            #Sending Un-Answered Query to Database
+                with faqdb.connection.cursor() as cursor:
+                    sql = "INSERT INTO unanswered (un_que_lang, un_que_cat, un_que_en) VALUES (%s, %s, %s)"
+                    val = (raw_response, detected_lang, user_response)
+                    cursor.execute(sql, val)
+                    faqdb.connection.commit()
+                print("Couldn't find an answer :(\nUn-Answered Question pushed to FAQ Database")
+                SoliBot_response = ["I'm sorry i didn't catch that! \nCould you please rephrase that query? \n\nI will learn from my experts and I will be able to answer you next time.", "", ""]
+            except:
+                SoliBot_response = ["I'm sorry i didn't catch that! \nCould you please rephrase that query? \n\nI will learn from my experts and I will be able to answer you next time.", "", ""]
+                print("Un-Answered couldn't be pushed due to Server Error!")
+
     else:
         try:
             #Sending Un-Answered Query to Database
