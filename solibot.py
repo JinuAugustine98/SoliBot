@@ -56,6 +56,9 @@ def response(user_response, raw_response, conj_response, detected_lang, category
 
     today = date.today()
 
+    print(answer1['score'])
+    print(answer2['score'])
+
     if (answer1['score'] > confidence_score['min_score']):
         # set off event asking if the response question is what they were looking for
         print ("\nBest-fit question with Keywords: %s (Score: %s)\nAnswer: %s\n" % (answer1['question'],
@@ -94,7 +97,6 @@ def response(user_response, raw_response, conj_response, detected_lang, category
             else:
                 print("Selected Question: ",answer2['question'])
                 SoliBot_response = [answer2['answer'], answer2['image'], answer2['video']]
-    
     else:
         try:
             #Sending Un-Answered Query to Database
@@ -164,7 +166,6 @@ def query_handler():
     device_id = input_data['device_id']
     detected_lang = input_data['language']
 
-    print(detected_lang)
     today = date.today()
 
     if time<13:
@@ -180,10 +181,10 @@ def query_handler():
 
     conj_response = raw_response
     
-    # try:
+    try:
     trans_response = translation(raw_response, "en")
-    # except:
-    #     trans_response = raw_response
+    except:
+        trans_response = raw_response
    
 
     trans_response = trans_response.lower()
