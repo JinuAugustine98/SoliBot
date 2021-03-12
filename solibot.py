@@ -56,9 +56,6 @@ def response(user_response, raw_response, conj_response, detected_lang, category
 
     today = date.today()
 
-    print(answer1['score'])
-    print(answer2['score'])
-
     if (answer1['score'] > confidence_score['min_score']):
         # set off event asking if the response question is what they were looking for
         print ("\nBest-fit question with Keywords: %s (Score: %s)\nAnswer: %s\n" % (answer1['question'],
