@@ -71,8 +71,8 @@ def response(user_response, raw_response, conj_response, detected_lang, category
                                                                         answer2['score']*100,
                                                                         answer2['answer']))
 
-    if(answer1['score']>0 and answer2['score']>0):
-        if (answer1['score']>answer2['score']):
+    if(answer1['score']>=0 and answer2['score']>=0):
+        if (answer1['score']>=answer2['score']):
             with faqdb.connection.cursor() as cursor:
                 sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
                 val = (device, category, answer1['question'], today)
