@@ -109,7 +109,7 @@ def response(user_response, raw_response, conj_response, detected_lang, category
             print("Un-Answered couldn't be pushed due to Server Error!")
     return SoliBot_response
 
-def translate_text(text, lang):
+def translation(text, lang):
 
     client = translate.TranslationServiceClient()
 
@@ -196,7 +196,7 @@ def query_handler():
     conj_response = raw_response
     
     # try:
-    trans_response = translate_text(raw_response, "en")
+    trans_response = translation(raw_response, "en")
     # except:
     #     trans_response = raw_response
    
@@ -313,7 +313,7 @@ def query_handler():
         final_vid = resp[2]
 
     try:
-        final_response = translate_text(f_resp, detected_lang)
+        final_response = translation(f_resp, detected_lang)
     except:
         final_response = resp
 
