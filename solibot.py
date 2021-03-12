@@ -35,7 +35,7 @@ api_key = "4839184290ce2dd0d15508c3f09350e4"
 # Confidence of the Bot to give Answers
 confidence_score = {
         "min_score": 0.5,
-        "max_score": 0.7
+        "max_score": 0.8
     }
 
 
