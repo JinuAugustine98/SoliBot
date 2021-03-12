@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, jsonify, request 
-from google.cloud import translate
+import six
+from google.cloud import translate_v2 as translate
 from rake_nltk import Rake
 from functools import reduce
 from similarity import find_most_similar
@@ -109,34 +110,23 @@ def response(user_response, raw_response, conj_response, detected_lang, category
             print("Un-Answered couldn't be pushed due to Server Error!")
     return SoliBot_response
 
-def translation(text, lang):
+def translation(text, target):
 
-    client = translate.TranslationServiceClient()
+    translate_client = translate.Client()
 
-    project_id = "chatbor-translate"
+    if isinstance(text, six.binary_type):
+        text = text.decode("utf-8")
 
-    location = "global"
+    # Text can also be a sequence of strings, in which case this method
+    # will return a sequence of results for each text.
+    result = translate_client.translate(text, target_language=target)
 
-    parent = f"projects/{project_id}/locations/{location}"
-
-    # Detail on supported types can be found here:
-    # https://cloud.google.com/translate/docs/supported-formats
-    response = client.translate_text(
-        request={
-            "parent": parent,
-            "contents": [text],
-            "mime_type": "text/plain",  # mime types: text/plain, text/html
-            "source_language_code": "en-US",
-            "target_language_code": "fr",
-        }
-    )
-
-    # Display the translation for each input text provided
+    translated_text = result["translatedText"]
+    print(u"Detected source language: {}".format(result["detectedSourceLanguage"]))
     for translation in response.translations:
         translated_text = translation.translated_text
 
     return translated_text
-
 
 
 
