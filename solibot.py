@@ -68,8 +68,8 @@ def response(user_response, raw_response, conj_response, detected_lang, category
                                                                         answer2['score']*100,
                                                                         answer2['answer']))
 
-    if(answer1['score']>=0 and answer2['score']>=0):
-        if (answer1['score']>=answer2['score']):
+    if(answer1['score']>0 and answer2['score']>0):
+        if (answer1['score']>answer2['score']):
             with faqdb.connection.cursor() as cursor:
                 sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
                 val = (device, category, answer1['question'], today)
@@ -77,7 +77,7 @@ def response(user_response, raw_response, conj_response, detected_lang, category
                 faqdb.connection.commit()
             if(answer1['score']<confidence_score['max_score']):
                 print("Couldn't find nearest query, asking User suggestion...")
-                SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n\n"+answer1['question']+"\n\nDid you mean this? \nPlease answer yes or no.", "", ""]
+                SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n\n"+str(answer1['question'])+"\n\nDid you mean this? \nPlease answer yes or no.", "", ""]
             else:
                 print("Selected Question: ",answer1['question'])
                 SoliBot_response = [answer1['answer'], answer1['image'], answer1['video']]
@@ -90,7 +90,7 @@ def response(user_response, raw_response, conj_response, detected_lang, category
                 faqdb.connection.commit()
             if(answer2['score']<confidence_score['max_score']):
                 print("Couldn't find nearest query, asking User suggestion...")
-                SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n\n"+answer2['question']+"\n\nDid you mean this? \nPlease answer yes or no.", "", ""]
+                SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n\n"+str(answer2['question'])+"\n\nDid you mean this? \nPlease answer yes or no.", "", ""]
             else:
                 print("Selected Question: ",answer2['question'])
                 SoliBot_response = [answer2['answer'], answer2['image'], answer2['video']]
@@ -175,8 +175,6 @@ def query_handler():
 
     print("User Query :",raw_response)
     print("Query Category :",category)
-
-    conj_response = raw_response
     
     try:
         trans_response = translation(raw_response, "en")
@@ -186,6 +184,8 @@ def query_handler():
 
     trans_response = trans_response.lower()
     trans_response = trans_response.strip()
+
+    conj_response = raw_response
 
     print("Translated Response :",trans_response)
 
