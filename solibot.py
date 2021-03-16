@@ -57,6 +57,7 @@ def response(user_response, trans_response, detected_lang, category, device):
     answer1 = find_most_similar(category, query1)
 
     print("Checking Spelling Mistakes with Database...")
+    query2 = ""
     spell.word_frequency.load_words(database_keywords)
 
     misspelled = spell.unknown(user_response.split())
