@@ -259,6 +259,11 @@ def query_handler():
 
     print("Translated Response :",trans_response)
 
+    f_resp = ""
+    final_response = ""
+    final_img = ""
+    final_vid = ""
+
     if trans_response in GREETING_INPUTS:
         try:
             with faqdb.connection.cursor() as cursor:
@@ -268,7 +273,7 @@ def query_handler():
             chk = sql_res[0]
 
             if(chk[0]==today):
-                resp = time_greet+" \nNice to see you again! \nPlease ask me your next query! "
+                f_resp = time_greet+" \nNice to see you again! \nPlease ask me your next query! "
                 final_img = ""
                 final_vid = "" 
             elif(chk[0]<today):
@@ -276,11 +281,11 @@ def query_handler():
                     sql_q = "SELECT q_que FROM suggest_memory WHERE device_id = = "+"'"+device_id+"'"+" ORDER BY ID DESC;"
                     cursor.execute(sql_q)
                     chk_que = cursor.fetchall()
-                resp =  time_greet+" again! \nLast time we spoke about "+chk_que[0][0].lower()+"\nHow may I help you today?"
+                f_resp =  time_greet+" again! \nLast time we spoke about "+chk_que[0][0].lower()+"\nHow may I help you today?"
                 final_img = ""
                 final_vid = ""
         except:
-            resp = time_greet+" I'm SoliBot! \nI'm here to help you with all your queries. \nPlease ask me your query..."
+            f_resp = time_greet+"Hey I'm SoliBot! \nI'm here to help you with all your queries. \nPlease ask me your query..."
             final_img = ""
             final_vid = ""
             try:
@@ -294,15 +299,15 @@ def query_handler():
 
 
     elif trans_response in THANK_INPUTS:
-        resp = "You are Welcome :) \nPlease come back for any more queries..."
+        f_resp = "You are Welcome :) \nPlease come back for any more queries..."
         final_img = ""
         final_vid = ""    
     elif trans_response in EXIT_INPUTS:
-        resp = "See you Around! \nPlease come back for any more queries :)"
+        f_resp = "See you Around! \nPlease come back for any more queries :)"
         final_img = ""
         final_vid = ""    
     elif trans_response in WEATHER_INPUTS:
-        resp = weather_data(latitude, longitude)
+        f_resp = weather_data(latitude, longitude)
         final_img = ""
         final_vid = ""
     elif trans_response == "yes":
