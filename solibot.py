@@ -111,11 +111,8 @@ def response(user_response, trans_response, detected_lang, category, device):
                                                                         answer3['score']*100,
                                                                         answer3['answer']))
 
-    final_scores = [answer1['score'], answer2['score'], answer3['score']]
-    final_scores.sort()
-    sel_score = final_scores[-1]
 
-    if(answer1['score']>=0 and answer2['score']>=0 and answer3['score']>=0):
+    if(answer1['score'] >= confidence_score['min_score'] and answer2['score'] >= confidence_score['min_score'] and answer3['score'] >= confidence_score['min_score']):
         if (answer1['score']>=answer2['score'] and answer1['score']>=answer3['score']):
             with faqdb.connection.cursor() as cursor:
                 sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
