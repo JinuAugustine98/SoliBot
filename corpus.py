@@ -7,12 +7,16 @@ import datetime
 import json
 import collections
 from rake_nltk import Rake
+from spellchecker import SpellChecker
+from functools import reduce
 
 def dictfetchall(cursor):
   columns = [col[0] for col in cursor.description]
   return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
 r = Rake()
+
+spell = SpellChecker()
 
 faqdb = mysql.connector.connect(
   host="soli-db.ciksb20swlbf.ap-south-1.rds.amazonaws.com",
@@ -28,14 +32,18 @@ clock = datetime.datetime.now().date()
 cursor.execute("SELECT Question, Answer, image_path, a_link FROM user_qa")
 CORPUS = dictfetchall(cursor)
 
-# database_keywords = []
-# for qkey in CORPUS:
-#   r.extract_keywords_from_text(qkey['Question'])
-#   database_keywords += r.get_ranked_phrases()
-#   r.extract_keywords_from_text(qkey['Answer'])
-#   database_keywords += r.get_ranked_phrases()
-#   print(database_keywords)
 
+print("Creating Database Dictionary...")
+database_keywords = []
+keis = []
+for qkey in CORPUS:
+  keys_res = r.extract_keywords_from_text(qkey['Question'])
+  q_keywords = r.get_ranked_phrases()
+  unique = reduce(lambda l, x: l.append(x) or l if x not in l else l, q_keywords, [])
+
+  for kei in unique:
+      keis = kei.split()
+      database_keywords += keis
 
 
 cursor.execute("SELECT Question, Answer, image_path, a_link FROM user_qa WHERE qa_crop = 'Dairy'")

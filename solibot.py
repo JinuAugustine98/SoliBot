@@ -5,11 +5,13 @@ from google.cloud import translate_v2 as translate
 from rake_nltk import Rake
 from functools import reduce
 from similarity import find_most_similar
+from similarity import compare_similarity
 import requests, json
 from flask_mysqldb import MySQL
 from datetime import date, datetime
 import os
-
+from corpus import database_keywords
+from spellchecker import SpellChecker
 
 
 app = Flask(__name__)
@@ -22,6 +24,8 @@ app.config['MYSQL_HOST'] = 'soli-db.ciksb20swlbf.ap-south-1.rds.amazonaws.com'
 faqdb = MySQL(app)
 
 r = Rake()
+
+spell = SpellChecker(distance=1)
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="/home/ubuntu/SoliBot/gcloud_translate.json"
 
@@ -47,29 +51,71 @@ WEATHER_INPUTS = ["weather", "weather today", "today's weather", "how is the wea
 
 
 # Generating response
-def response(user_response, raw_response, conj_response, detected_lang, category, device):
+def response(user_response, trans_response, detected_lang, category, device):
+
     query1 = user_response
     answer1 = find_most_similar(category, query1)
 
-    query2 = conj_response
+    print("Checking Spelling Mistakes with Database...")
+    spell.word_frequency.load_words(database_keywords)
+
+    misspelled = spell.unknown(user_response.split())
+
+    for word in misspelled:
+        correct_key = spell.correction(word)
+        query2 = user_response.replace(word, correct_key)
+    
+    if query2 == user_response:
+        print("User Query has no Spelling mistakes...")
+    else:
+        print("User Query has Spelling Mistakes, which has been corrected...")
+        print("Corrected Query: ",query2)
+
     answer2 = find_most_similar(category, query2)
+
+    print("Checking for Phonetical Mistakes...")
+    query3 = ""
+    for key in user_response.split():
+        spell_url = "https://api.datamuse.com/words?sl="+str(key)
+        spell_request = requests.get(url = spell_url)
+        spell_result = spell_request.json()
+        phon_keys = spell_result[0]['word']
+        query3 += phon_keys+" "
+    
+    if query3 == user_response:
+        print("User Query has no Phonetical mistakes...")
+    else:
+        print("User Query has Phonetical Mistakes, which has been corrected...")
+        print("Corrected Query: ",query3)
+    answer3 = find_most_similar(category, query3)
 
     today = date.today()
 
+
     if (answer1['score'] > confidence_score['min_score']):
         # set off event asking if the response question is what they were looking for
-        print ("\nBest-fit question with Keywords: %s (Score: %s)\nAnswer: %s\n" % (answer1['question'],
+        print ("\nBest-fit question with Full Query: %s (Score: %s)\nAnswer: %s\n" % (answer1['question'],
                                                                         answer1['score']*100,
                                                                         answer1['answer']))
 
     if (answer2['score'] > confidence_score['min_score']):
         # set off event asking if the response question is what they were looking for
-        print ("\nBest-fit question with Full Query: %s (Score: %s)\nAnswer: %s\n" % (answer2['question'],
+        print ("\nBest-fit question with Corrected Spellings: %s (Score: %s)\nAnswer: %s\n" % (answer2['question'],
                                                                         answer2['score']*100,
                                                                         answer2['answer']))
 
-    if(answer1['score']>=0 and answer2['score']>=0):
-        if (answer1['score']>answer2['score']):
+    if (answer3['score'] > confidence_score['min_score']):
+        # set off event asking if the response question is what they were looking for
+        print ("\nBest-fit question with Corrected Phonetics: %s (Score: %s)\nAnswer: %s\n" % (answer3['question'],
+                                                                        answer3['score']*100,
+                                                                        answer3['answer']))
+
+    final_scores = [answer1['score'], answer2['score'], answer3['score']]
+    final_scores.sort()
+    sel_score = final_scores[-1]
+
+    if(sel_score>=0):
+        if (answer1['score']>=answer2['score'] and answer1['score']>=answer3['score']):
             with faqdb.connection.cursor() as cursor:
                 sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
                 val = (device, category, answer1['question'], today)
@@ -82,7 +128,7 @@ def response(user_response, raw_response, conj_response, detected_lang, category
                 print("Selected Question: ",answer1['question'])
                 SoliBot_response = [answer1['answer'], answer1['image'], answer1['video']]
         
-        elif (answer1['score']<answer2['score']):
+        elif (answer2['score']>=answer1['score'] and answer2['score']>=answer3['score']):
             with faqdb.connection.cursor() as cursor:
                 sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
                 val = (device, category, answer2['question'], today)
@@ -94,12 +140,26 @@ def response(user_response, raw_response, conj_response, detected_lang, category
             else:
                 print("Selected Question: ",answer2['question'])
                 SoliBot_response = [answer2['answer'], answer2['image'], answer2['video']]
+
+        elif (answer3['score']>=answer1['score'] and answer3['score']>=answer2['score']):
+            with faqdb.connection.cursor() as cursor:
+                sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
+                val = (device, category, answer3['question'], today)
+                cursor.execute(sql, val)
+                faqdb.connection.commit()
+            if(answer3['score']<confidence_score['max_score']):
+                print("Couldn't find nearest query, asking User suggestion...")
+                SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n\n"+str(answer3['question'])+"\n\nDid you mean this? \nPlease answer yes or no.", "", ""]
+            else:
+                print("Selected Question: ",answer3['question'])
+                SoliBot_response = [answer3['answer'], answer3['image'], answer3['video']]
+
         else:
             try:
             #Sending Un-Answered Query to Database
                 with faqdb.connection.cursor() as cursor:
                     sql = "INSERT INTO unanswered (un_que_lang, un_que_cat, un_que_en) VALUES (%s, %s, %s)"
-                    val = (raw_response, detected_lang, user_response)
+                    val = (trans_response, detected_lang, user_response)
                     cursor.execute(sql, val)
                     faqdb.connection.commit()
                 print("Couldn't find an answer :(\nUn-Answered Question pushed to FAQ Database")
@@ -113,7 +173,7 @@ def response(user_response, raw_response, conj_response, detected_lang, category
             #Sending Un-Answered Query to Database
             with faqdb.connection.cursor() as cursor:
                 sql = "INSERT INTO unanswered (un_que_lang, un_que_cat, un_que_en) VALUES (%s, %s, %s)"
-                val = (raw_response, detected_lang, user_response)
+                val = (trans_response, detected_lang, user_response)
                 cursor.execute(sql, val)
                 faqdb.connection.commit()
             print("Couldn't find an answer :(\nUn-Answered Question pushed to FAQ Database")
@@ -199,22 +259,7 @@ def query_handler():
     trans_response = trans_response.lower()
     trans_response = trans_response.strip()
 
-    conj_response = trans_response
-
     print("Translated Response :",trans_response)
-
-    r.extract_keywords_from_text(trans_response)
-    keys_response = r.get_ranked_phrases()
-    
-    print("Identified Keywords: ",keys_response)
-
-    unique = reduce(lambda l, x: l.append(x) or l if x not in l else l, keys_response, [])
-    user_response = ""
-
-    for key in unique:
-        user_response += key+" "
-
-    
 
     if trans_response in GREETING_INPUTS:
         try:
@@ -304,7 +349,19 @@ def query_handler():
         final_img = ""
         final_vid = ""
     else:
-        resp = response(user_response, raw_response, conj_response, detected_lang, category, device_id)
+
+        r.extract_keywords_from_text(trans_response)
+        keys_response = r.get_ranked_phrases()
+
+        unique = reduce(lambda l, x: l.append(x) or l if x not in l else l, keys_response, [])
+        user_response = ""
+
+        for key in unique:
+            user_response += key+" "
+
+        print("Identified Keywords: ",user_response)
+
+        resp = response(user_response, trans_response, detected_lang, category, device_id)
         f_resp = resp[0]
         final_img = resp[1]
         final_vid = resp[2]
@@ -312,7 +369,7 @@ def query_handler():
     try:
         final_response = translation(f_resp, detected_lang)
     except:
-        final_response = resp
+        final_response = f_resp
 
 
     server_response = {'response': final_response,
@@ -325,5 +382,5 @@ def query_handler():
   
   
 if __name__ == '__main__': 
-    app.run(host='0.0.0.0') 
-    # app.run(debug=True)
+    # app.run(host='0.0.0.0') 
+    app.run(debug=True)
