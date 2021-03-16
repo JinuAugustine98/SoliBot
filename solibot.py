@@ -160,7 +160,7 @@ def response(user_response, trans_response, detected_lang, category, device):
                     val = (trans_response, detected_lang, user_response)
                     cursor.execute(sql, val)
                     faqdb.connection.commit()
-                print("Couldn't find an answer :(\nUn-Answered Question pushed to FAQ Database")
+                print("Couldn't find an answer due to low score :(\nUn-Answered Question pushed to FAQ Database")
                 SoliBot_response = ["Sorry, I couldn't understand it! \nCan you please ask it again differently?", "", ""]
             except:
                 SoliBot_response = ["Sorry, I couldn't understand it! \nCan you please ask it again differently?", "", ""]
@@ -174,7 +174,7 @@ def response(user_response, trans_response, detected_lang, category, device):
                 val = (trans_response, detected_lang, user_response)
                 cursor.execute(sql, val)
                 faqdb.connection.commit()
-            print("Couldn't find an answer :(\nUn-Answered Question pushed to FAQ Database")
+            print("Couldn't find an answer, question not in database. :(\nUn-Answered Question pushed to FAQ Database")
             SoliBot_response = ["Sorry, I couldn't understand it! \nCan you please ask it again differently?", "", ""]
         except:
             SoliBot_response = ["Sorry, I couldn't understand it! \nCan you please ask it again differently?", "", ""]
