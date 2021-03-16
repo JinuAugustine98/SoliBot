@@ -161,9 +161,9 @@ def response(user_response, trans_response, detected_lang, category, device):
                     cursor.execute(sql, val)
                     faqdb.connection.commit()
                 print("Couldn't find an answer :(\nUn-Answered Question pushed to FAQ Database")
-                SoliBot_response = ["I'm sorry i didn't catch that! \nCould you please rephrase that query? \n\nI will learn from my experts and I will be able to answer you next time.", "", ""]
+                SoliBot_response = ["Sorry, I couldn't understand it! \nCan you please ask it again differently?", "", ""]
             except:
-                SoliBot_response = ["I'm sorry i didn't catch that! \nCould you please rephrase that query? \n\nI will learn from my experts and I will be able to answer you next time.", "", ""]
+                SoliBot_response = ["Sorry, I couldn't understand it! \nCan you please ask it again differently?", "", ""]
                 print("Un-Answered couldn't be pushed due to Server Error!")
 
     else:
@@ -175,9 +175,9 @@ def response(user_response, trans_response, detected_lang, category, device):
                 cursor.execute(sql, val)
                 faqdb.connection.commit()
             print("Couldn't find an answer :(\nUn-Answered Question pushed to FAQ Database")
-            SoliBot_response = ["I'm sorry i didn't catch that! \nCould you please rephrase that query? \n\nI will learn from my experts and I will be able to answer you next time.", "", ""]
+            SoliBot_response = ["Sorry, I couldn't understand it! \nCan you please ask it again differently?", "", ""]
         except:
-            SoliBot_response = ["I'm sorry i didn't catch that! \nCould you please rephrase that query? \n\nI will learn from my experts and I will be able to answer you next time.", "", ""]
+            SoliBot_response = ["Sorry, I couldn't understand it! \nCan you please ask it again differently?", "", ""]
             print("Un-Answered couldn't be pushed due to Server Error!")
     return SoliBot_response
 
@@ -331,7 +331,7 @@ def query_handler():
             val = (detected_lang, q_cate, q_quest)
             cursor.execute(sql, val)
             faqdb.connection.commit()
-        f_resp = "I'm sorry I couldn't find the suggestion related to your query. \nI will learn from my experts and I will be able to answer you next time."
+        f_resp = "Okay, I will get the answer for this question from Solidaridad experts. \nI can give the answer when we meet next time..."
         final_img = ""
         final_vid = ""
         print("User didn't accept suggestion :( \nUn-Answered Question pushed to FAQ Database")
