@@ -53,45 +53,48 @@ WEATHER_INPUTS = ["weather", "weather today", "today's weather", "how is the wea
 # Generating response
 def response(user_response, trans_response, detected_lang, category, device):
 
-    query1 = user_response
+    query1 = trans_response
     answer1 = find_most_similar(category, query1)
 
+    query2 = user_response
+    answer2 = find_most_similar(category, query2)
+
     print("Checking Spelling Mistakes with Database...")
-    query2 = ""
+    query3 = ""
     spell.word_frequency.load_words(database_keywords)
 
     misspelled = spell.unknown(user_response.split())
 
     for word in misspelled:
         correct_key = spell.correction(word)
-        query2 = user_response.replace(word, correct_key)
+        query3 = user_response.replace(word, correct_key)
     
-    if query2 == user_response:
+    if query3 == user_response:
         print("User Query has no Spelling mistakes...")
     else:
         print("User Query has Spelling Mistakes, which has been corrected...")
-        print("Corrected Query: ",query2)
+        print("Corrected Query: ",query3)
 
-    answer2 = find_most_similar(category, query2)
+    answer3 = find_most_similar(category, query3)
 
     print("Checking for Phonetical Mistakes...")
-    query3 = ""
+    query4 = ""
     for key in user_response.split():
         try:
             spell_url = "https://api.datamuse.com/words?sl="+str(key)
             spell_request = requests.get(url = spell_url)
             spell_result = spell_request.json()
             phon_keys = spell_result[0]['word']
-            query3 += phon_keys+" "
+            query4 += phon_keys+" "
         except:
-            query3 = query2
+            query4 = query3
     
-    if query3 == user_response:
+    if query4 == user_response:
         print("User Query has no Phonetical mistakes...")
     else:
         print("User Query has Phonetical Mistakes, which has been corrected...")
-        print("Corrected Query: ",query3)
-    answer3 = find_most_similar(category, query3)
+        print("Corrected Query: ",query4)
+    answer4 = find_most_similar(category, query4)
 
     today = date.today()
 
@@ -104,19 +107,25 @@ def response(user_response, trans_response, detected_lang, category, device):
 
     if (answer2['score'] > confidence_score['min_score']):
         # set off event asking if the response question is what they were looking for
-        print ("\nBest-fit question with Corrected Spellings: %s (Score: %s)\nAnswer: %s\n" % (answer2['question'],
+        print ("\nBest-fit question with Extracted Keywords: %s (Score: %s)\nAnswer: %s\n" % (answer2['question'],
                                                                         answer2['score']*100,
                                                                         answer2['answer']))
 
     if (answer3['score'] > confidence_score['min_score']):
         # set off event asking if the response question is what they were looking for
-        print ("\nBest-fit question with Corrected Phonetics: %s (Score: %s)\nAnswer: %s\n" % (answer3['question'],
+        print ("\nBest-fit question with Corrected Spellings: %s (Score: %s)\nAnswer: %s\n" % (answer3['question'],
                                                                         answer3['score']*100,
                                                                         answer3['answer']))
 
+    if (answer4['score'] > confidence_score['min_score']):
+        # set off event asking if the response question is what they were looking for
+        print ("\nBest-fit question with Corrected Phonetics: %s (Score: %s)\nAnswer: %s\n" % (answer4['question'],
+                                                                        answer4['score']*100,
+                                                                        answer4['answer']))
 
-    if(answer1['score'] >= confidence_score['min_score'] or answer2['score'] >= confidence_score['min_score'] or answer3['score'] >= confidence_score['min_score']):
-        if (answer1['score']>=answer2['score'] and answer1['score']>=answer3['score']):
+
+    if(answer1['score'] >= confidence_score['min_score'] or answer2['score'] >= confidence_score['min_score'] or answer3['score'] >= confidence_score['min_score'] or answer4['score'] >= confidence_score['min_score']):
+        if (answer1['score']>=answer2['score'] and answer1['score']>=answer3['score'] and answer1['score']>=answer4['score']):
             with faqdb.connection.cursor() as cursor:
                 sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
                 val = (device, category, answer1['question'], today)
@@ -129,7 +138,7 @@ def response(user_response, trans_response, detected_lang, category, device):
                 print("Selected Question: ",answer1['question'])
                 SoliBot_response = [answer1['answer'], answer1['image'], answer1['video']]
         
-        elif (answer2['score']>=answer1['score'] and answer2['score']>=answer3['score']):
+        elif (answer2['score']>=answer1['score'] and answer2['score']>=answer3['score'] and answer2['score']>=answer4['score']):
             with faqdb.connection.cursor() as cursor:
                 sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
                 val = (device, category, answer2['question'], today)
@@ -142,7 +151,7 @@ def response(user_response, trans_response, detected_lang, category, device):
                 print("Selected Question: ",answer2['question'])
                 SoliBot_response = [answer2['answer'], answer2['image'], answer2['video']]
 
-        elif (answer3['score']>=answer1['score'] and answer3['score']>=answer2['score']):
+        elif (answer3['score']>=answer1['score'] and answer3['score']>=answer2['score'] and answer3['score']>=answer4['score']):
             with faqdb.connection.cursor() as cursor:
                 sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
                 val = (device, category, answer3['question'], today)
@@ -154,6 +163,19 @@ def response(user_response, trans_response, detected_lang, category, device):
             else:
                 print("Selected Question: ",answer3['question'])
                 SoliBot_response = [answer3['answer'], answer3['image'], answer3['video']]
+
+        elif (answer4['score']>=answer1['score'] and answer4['score']>=answer2['score'] and answer4['score']>=answer3['score']):
+            with faqdb.connection.cursor() as cursor:
+                sql = "INSERT INTO suggest_memory (device_id, q_category, q_que, q_date) VALUES (%s, %s, %s, %s)"
+                val = (device, category, answer4['question'], today)
+                cursor.execute(sql, val)
+                faqdb.connection.commit()
+            if(answer4['score']<confidence_score['max_score']):
+                print("Couldn't find nearest query, asking User suggestion...")
+                SoliBot_response = ["I'm sorry, I couldn't find an answer to your query, this is a similar query i found:\n\n"+str(answer4['question'])+"\n\nDid you mean this? \nPlease answer yes or no.", "", ""]
+            else:
+                print("Selected Question: ",answer4['question'])
+                SoliBot_response = [answer4['answer'], answer4['image'], answer4['video']]
 
         else:
             try:
