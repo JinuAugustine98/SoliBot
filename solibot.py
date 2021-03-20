@@ -77,11 +77,14 @@ def response(user_response, trans_response, detected_lang, category, device):
     print("Checking for Phonetical Mistakes...")
     query3 = ""
     for key in user_response.split():
-        spell_url = "https://api.datamuse.com/words?sl="+str(key)
-        spell_request = requests.get(url = spell_url)
-        spell_result = spell_request.json()
-        phon_keys = spell_result[0]['word']
-        query3 += phon_keys+" "
+        try:
+            spell_url = "https://api.datamuse.com/words?sl="+str(key)
+            spell_request = requests.get(url = spell_url)
+            spell_result = spell_request.json()
+            phon_keys = spell_result[0]['word']
+            query3 += phon_keys+" "
+        except:
+            query3 = query2
     
     if query3 == user_response:
         print("User Query has no Phonetical mistakes...")
