@@ -400,12 +400,12 @@ def query_handler():
         final_response = f_resp
 
     # try:
-    farmer_final = input_data['farmer_name']
-    with faqdb.connection.cursor() as cursor:
-                sql = "INSERT INTO output_logs (device_id, user_name, qa_date, query_category, query_native, language, query_translated, bot_response) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-                val = (device_id, farmer_final, today, category, raw_response, detected_lang, trans_response, final_response)
-                cursor.execute(sql, val)
-                faqdb.connection.commit()
+    # farmer_final = input_data['farmer_name']
+    # with faqdb.connection.cursor() as cursor:
+    #             sql = "INSERT INTO output_logs (device_id, user_name, qa_date, query_category, query_native, language, query_translated, bot_response) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+    #             val = (device_id, farmer_final, today, category, raw_response, detected_lang, trans_response, final_response)
+    #             cursor.execute(sql, val)
+    #             faqdb.connection.commit()
     # except:
     #     pass
 
