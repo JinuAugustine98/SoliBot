@@ -255,8 +255,14 @@ def query_handler():
     raw_response = input_data['query'] 
     category = input_data['category']
     time = input_data['time']
-    latitude = input_data['latitude']
-    longitude = input_data['longitude']
+
+    try:
+        latitude = input_data['latitude']
+        longitude = input_data['longitude']
+    except:
+        latitude = 0.0
+        longitude = 0.0
+        
     device_id = input_data['device_id']
     detected_lang = input_data['language']
 
