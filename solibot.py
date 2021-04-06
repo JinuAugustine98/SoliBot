@@ -47,7 +47,7 @@ confidence_score = {
 GREETING_INPUTS = ["hello", "hi", "greetings", "sup", "what's up","hey"]
 THANK_INPUTS = ["thanks", "thank you"]
 EXIT_INPUTS = ["bye", "cool", "ok", "great"]
-WEATHER_INPUTS = ["weather", "weather today", "today's weather", "how is the weather", "how's the weather today", "how is today's weather", "how is the weather today", "rain", "will it rain today", "when will it rain", "what is the weather"]
+WEATHER_INPUTS = ["weather", "weather today", "today's weather", "how is the weather", "how's the weather today", "how is today's weather", "how is the weather today", "rain", "will it rain today", "when will it rain", "what is the weather", "how's the weather"]
 
 
 # Generating response
