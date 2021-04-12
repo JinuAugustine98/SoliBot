@@ -317,7 +317,7 @@ def query_handler():
                 final_img = ""
                 final_vid = ""
         except:
-            f_resp = time_greet+"Hey I'm SoliBot! \nI'm here to help you with all your queries. \nPlease ask me your query..."
+            f_resp = time_greet+"\nI'm SoliBot! \nI'm here to help you with all your queries. \nPlease ask me your query..."
             final_img = ""
             final_vid = ""
             try:
