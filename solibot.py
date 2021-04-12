@@ -278,6 +278,7 @@ def query_handler():
 
     print("User Query :",raw_response)
     print("Query Category :",category)
+    print("\nQuery from: "+str(latitude)+", "+str(longitude))
     
     try:
         trans_response = translation(raw_response, "en")
